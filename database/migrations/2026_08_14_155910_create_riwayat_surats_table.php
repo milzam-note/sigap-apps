@@ -19,6 +19,7 @@ return new class extends Migration
             $table->date('tanggal_surat_lama');
             $table->date('tanggal_berlaku_lama');
             $table->text('deskripsi_lama');
+            $table->string('tahun_dokumen_lama', 4);
             $table->string('nomor_surat_lama');
             $table->foreignId('jenis_surat_id_lama')->constrained('jenis_surats')->onDelete('cascade');
             $table->enum('sifat_surat_lama', ['umum', 'rahasia']);

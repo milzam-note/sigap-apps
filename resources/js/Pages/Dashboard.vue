@@ -1,23 +1,46 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { Head, Link, usePage } from "@inertiajs/vue3";
+import { Head, Link, usePage, router } from "@inertiajs/vue3";
+import { ref } from "vue";
 
-// Menerima data dari DashboardController
-defineProps({
+const props = defineProps({
     stats: Object,
     recent_documents: Array,
     userRole: String,
+    filters: Object,
 });
 
-// Mengambil data user yang sedang login dari global props Inertia
 const user = usePage().props.auth.user;
 
-// Fungsi format tanggal sederhana
-const formatDate = (dateString) => {
+// --- FILTER UNTUK DASHBOARD INTERNAL ---
+const filterParams = ref({
+    search: props.filters?.search || "",
+    tanggal_berlaku: props.filters?.tanggal_berlaku || "",
+    tahun: props.filters?.tahun || "",
+});
+
+const currentYear = new Date().getFullYear();
+const years = Array.from({ length: 11 }, (_, i) =>
+    (currentYear - i).toString(),
+);
+
+const applyFilter = () => {
+    router.get(route("dashboard"), filterParams.value, {
+        preserveState: true,
+        preserveScroll: true,
+    });
+};
+
+const resetFilter = () => {
+    filterParams.value = { search: "", tanggal_berlaku: "", tahun: "" };
+    applyFilter();
+};
+
+const formatDateShort = (dateString) => {
     if (!dateString) return "-";
     const date = new Date(dateString);
     return date.toLocaleDateString("id-ID", {
-        day: "numeric",
+        day: "2-digit",
         month: "short",
         year: "numeric",
     });
@@ -25,14 +48,14 @@ const formatDate = (dateString) => {
 </script>
 
 <template>
-    <Head title="Dashboard" />
+    <Head title="Dashboard Internal" />
 
     <AuthenticatedLayout>
         <div class="py-8">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
                 <!-- GRID UTAMA -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- ================= BAGIAN KIRI ================= -->
+                    <!-- ================= BAGIAN KIRI: KONTEN UTAMA ================= -->
                     <div class="lg:col-span-2 space-y-6">
                         <!-- 1. WELCOME BANNER -->
                         <div
@@ -51,7 +74,6 @@ const formatDate = (dateString) => {
                                     arsip, dan pertahankan tingkat keamanan data
                                     administrasi ke level berikutnya.
                                 </p>
-                                <!-- TOMBOL INI HANYA TAMPIL UNTUK ADMIN -->
                                 <Link
                                     v-if="user.role === 'admin'"
                                     :href="route('surat.index')"
@@ -60,14 +82,12 @@ const formatDate = (dateString) => {
                                     Buka Ruang Kerja
                                 </Link>
                             </div>
-                            <!-- Ilustrasi Sederhana -->
                             <div class="hidden sm:block">
                                 <svg
                                     class="w-32 h-32 text-indigo-300"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
-                                    xmlns="http://www.w3.org/2000/svg"
                                 >
                                     <path
                                         stroke-linecap="round"
@@ -79,170 +99,228 @@ const formatDate = (dateString) => {
                             </div>
                         </div>
 
-                        <!-- 2. TABEL DOKUMEN TERBARU -->
-                        <div
-                            class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+                        <!-- 2. FILTER PENCARIAN DASHBOARD INTERNAL -->
+                        <!-- <div
+                            class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200"
                         >
-                            <div class="p-6 border-b border-gray-100">
-                                <h3 class="text-lg font-bold text-gray-900">
-                                    Dokumen Terbaru
-                                </h3>
-                            </div>
-                            <div class="overflow-x-auto">
-                                <table
-                                    class="min-w-full divide-y divide-gray-100"
-                                >
-                                    <thead class="bg-gray-50">
-                                        <tr>
-                                            <th
-                                                class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider"
-                                            >
-                                                Nama Dokumen
-                                            </th>
-                                            <th
-                                                class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider"
-                                            >
-                                                Dibuat Pada
-                                            </th>
-                                            <th
-                                                class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider"
-                                            >
-                                                Aksi
-                                            </th>
-                                            <th
-                                                class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider"
-                                            >
-                                                Status
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody
-                                        class="bg-white divide-y divide-gray-100"
+                            <h3
+                                class="text-xs font-bold text-gray-500 mb-4 uppercase tracking-wider"
+                            >
+                                Pencarian Arsip Dokumen
+                            </h3>
+                            <div
+                                class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end"
+                            >
+                                <div>
+                                    <label
+                                        class="block text-xs font-bold text-gray-700 mb-1.5"
+                                        >Nama / Nomor Dokumen</label
                                     >
-                                        <tr
-                                            v-for="surat in recent_documents"
-                                            :key="surat.id"
-                                            class="hover:bg-gray-50"
+                                    <input
+                                        v-model="filterParams.search"
+                                        type="text"
+                                        placeholder="Cari nama atau nomor..."
+                                        class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition"
+                                        @keyup.enter="applyFilter"
+                                    />
+                                </div>
+                                <div>
+                                    <label
+                                        class="block text-xs font-bold text-gray-700 mb-1.5"
+                                        >Tanggal Berlaku</label
+                                    >
+                                    <input
+                                        v-model="filterParams.tanggal_berlaku"
+                                        type="date"
+                                        class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition"
+                                    />
+                                </div>
+                                <div>
+                                    <label
+                                        class="block text-xs font-bold text-gray-700 mb-1.5"
+                                        >Tahun Dokumen</label
+                                    >
+                                    <select
+                                        v-model="filterParams.tahun"
+                                        class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition"
+                                    >
+                                        <option value="">Semua Tahun</option>
+                                        <option
+                                            v-for="y in years"
+                                            :key="y"
+                                            :value="y"
                                         >
-                                            <td
-                                                class="px-6 py-4 whitespace-nowrap"
-                                            >
-                                                <div class="flex items-center">
-                                                    <div
-                                                        class="flex-shrink-0 h-8 w-8 bg-red-100 text-red-600 rounded flex items-center justify-center font-bold text-xs"
-                                                    >
-                                                        PDF
-                                                    </div>
-                                                    <div class="ml-4">
-                                                        <div
-                                                            class="text-sm font-medium text-gray-900"
-                                                        >
-                                                            {{
-                                                                surat.nama_surat
-                                                            }}
-                                                        </div>
-                                                        <div
-                                                            class="text-xs text-gray-500"
-                                                        >
-                                                            {{
-                                                                surat.nomor_surat
-                                                            }}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td
-                                                class="px-6 py-4 whitespace-nowrap"
-                                            >
-                                                <div
-                                                    class="text-sm text-gray-900"
-                                                >
-                                                    {{
-                                                        formatDate(
-                                                            surat.created_at,
-                                                        )
-                                                    }}
-                                                </div>
-                                                <div
-                                                    class="text-xs text-gray-500"
-                                                >
-                                                    {{
-                                                        surat.pembuat
-                                                            ? surat.pembuat.name
-                                                            : "Sistem"
-                                                    }}
-                                                </div>
-                                            </td>
-                                            <td
-                                                class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium"
-                                            >
-                                                <div
-                                                    class="flex items-center justify-center space-x-2"
-                                                >
-                                                    <a
-                                                        :href="
-                                                            route(
-                                                                'surat.lihat',
-                                                                surat.id,
-                                                            )
-                                                        "
-                                                        target="_blank"
-                                                        class="text-indigo-600 hover:text-indigo-900 bg-indigo-50 px-3 py-1 rounded transition-colors"
-                                                    >
-                                                        Lihat
-                                                    </a>
-                                                    <a
-                                                        :href="
-                                                            route(
-                                                                'surat.unduh',
-                                                                surat.id,
-                                                            )
-                                                        "
-                                                        class="text-green-600 hover:text-green-900 bg-green-50 px-3 py-1 rounded transition-colors"
-                                                    >
-                                                        Unduh
-                                                    </a>
-                                                </div>
-                                            </td>
-                                            <td
-                                                class="px-6 py-4 whitespace-nowrap"
-                                            >
-                                                <span
-                                                    :class="
-                                                        surat.sifat_surat ===
-                                                        'rahasia'
-                                                            ? 'bg-red-100 text-red-700'
-                                                            : 'bg-green-100 text-green-700'
-                                                    "
-                                                    class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full uppercase"
-                                                >
-                                                    {{ surat.sifat_surat }}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                        <tr
-                                            v-if="recent_documents.length === 0"
+                                            {{ y }}
+                                        </option>
+                                    </select>
+                                </div>
+                                <div
+                                    class="md:col-span-3 flex justify-end space-x-3 mt-2"
+                                >
+                                    <button
+                                        @click="resetFilter"
+                                        class="px-5 py-2 bg-gray-100 text-gray-700 text-sm font-bold rounded-lg hover:bg-gray-200 transition"
+                                    >
+                                        Reset
+                                    </button>
+                                    <button
+                                        @click="applyFilter"
+                                        class="px-6 py-2 bg-indigo-600 text-white text-sm font-bold rounded-lg hover:bg-indigo-700 transition shadow-sm"
+                                    >
+                                        Cari
+                                    </button>
+                                </div>
+                            </div>
+                        </div> -->
+
+                        <!-- 3. LIST DOKUMEN TERBARU (BERBENTUK CARD KECIL SEPERTI GAMBAR) -->
+                        <div class="space-y-4">
+                            <h3 class="text-lg font-bold text-gray-900 px-1">
+                                Dokumen Terbaru
+                            </h3>
+
+                            <div
+                                v-for="surat in recent_documents"
+                                :key="surat.id"
+                                class="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 sm:p-5 flex flex-col sm:flex-row gap-4 items-center justify-between hover:shadow-md transition-all group"
+                            >
+                                <div
+                                    class="flex items-center gap-4 w-full sm:w-auto"
+                                >
+                                    <div
+                                        class="w-16 h-16 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 border border-indigo-100 shrink-0 relative"
+                                    >
+                                        <div
+                                            class="absolute -top-2 -right-2 bg-indigo-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded shadow-sm"
                                         >
-                                            <td
-                                                colspan="4"
-                                                class="px-6 py-8 text-center text-gray-500 text-sm"
-                                            >
-                                                Belum ada dokumen yang diunggah.
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                                            {{ surat.tahun_dokumen }}
+                                        </div>
+                                        <svg
+                                            class="w-8 h-8"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="1.5"
+                                                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                                            ></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <span
+                                            class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 uppercase tracking-wider mb-1"
+                                        >
+                                            {{
+                                                surat.jenis_surat
+                                                    ? surat.jenis_surat
+                                                          .nama_jenis
+                                                    : "KATEGORI"
+                                            }}
+                                        </span>
+                                        <h4
+                                            class="text-base font-bold text-gray-900 group-hover:text-indigo-600 transition-colors leading-tight"
+                                        >
+                                            {{ surat.nama_surat }}
+                                        </h4>
+                                        <p
+                                            class="text-xs font-semibold text-gray-500 uppercase tracking-wider mt-0.5"
+                                        >
+                                            NOMOR: {{ surat.nomor_surat }}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div
+                                    class="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto justify-end pt-3 sm:pt-0 border-t sm:border-0 border-gray-100"
+                                >
+                                    <div
+                                        class="text-xs bg-gray-50 px-2.5 py-1.5 rounded-lg border border-gray-100"
+                                    >
+                                        <span
+                                            class="text-gray-400 block text-[10px] uppercase font-bold"
+                                            >Status</span
+                                        >
+                                        <span
+                                            :class="
+                                                surat.sifat_surat === 'rahasia'
+                                                    ? 'text-red-600 font-bold'
+                                                    : 'text-emerald-600 font-bold'
+                                            "
+                                            class="capitalize"
+                                            >{{ surat.sifat_surat }}</span
+                                        >
+                                    </div>
+                                    <div
+                                        class="text-xs bg-gray-50 px-2.5 py-1.5 rounded-lg border border-gray-100"
+                                    >
+                                        <span
+                                            class="text-gray-400 block text-[10px] uppercase font-bold"
+                                            >Ditetapkan</span
+                                        >
+                                        <span
+                                            class="font-semibold text-gray-800"
+                                            >{{
+                                                formatDateShort(
+                                                    surat.tanggal_surat,
+                                                )
+                                            }}</span
+                                        >
+                                    </div>
+                                    <div
+                                        class="text-xs bg-gray-50 px-2.5 py-1.5 rounded-lg border border-gray-100"
+                                    >
+                                        <span
+                                            class="text-gray-400 block text-[10px] uppercase font-bold"
+                                            >Berlaku</span
+                                        >
+                                        <span
+                                            class="font-semibold text-indigo-700"
+                                            >{{
+                                                formatDateShort(
+                                                    surat.tanggal_berlaku,
+                                                )
+                                            }}</span
+                                        >
+                                    </div>
+                                    <div class="flex gap-1.5 ml-2">
+                                        <a
+                                            :href="
+                                                route('surat.lihat', surat.id)
+                                            "
+                                            target="_blank"
+                                            class="px-3.5 py-2 bg-white border border-indigo-600 text-indigo-600 hover:bg-indigo-50 font-bold text-xs rounded-lg transition"
+                                            >Lihat</a
+                                        >
+                                        <a
+                                            :href="
+                                                route('surat.unduh', surat.id)
+                                            "
+                                            class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-lg shadow-sm transition"
+                                            >Unduh</a
+                                        >
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div
+                                v-if="recent_documents.length === 0"
+                                class="bg-white rounded-2xl border border-gray-200 p-12 text-center text-gray-500 text-sm"
+                            >
+                                Belum ada dokumen yang ditemukan.
                             </div>
                         </div>
                     </div>
 
-                    <!-- ================= BAGIAN KANAN ================= -->
+                    <!-- ================= BAGIAN KANAN: STATISTIK & LOG ================= -->
                     <div class="space-y-6">
                         <h3 class="text-lg font-bold text-gray-900 pt-2">
                             Statistik Data
                         </h3>
 
-                        <!-- 3. GRID STATISTIK KARTU (2x2) -->
+                        <!-- GRID STATISTIK KARTU (2x2) -->
                         <div class="grid grid-cols-2 gap-4">
                             <!-- Total Dokumen -->
                             <div
@@ -364,11 +442,10 @@ const formatDate = (dateString) => {
                             </div>
                         </div>
 
-                        <!-- 4. LOG AKTIVITAS TERAKHIR -->
+                        <!-- LOG AKTIVITAS TERAKHIR -->
                         <div
                             class="bg-gradient-to-br from-indigo-900 to-blue-800 rounded-2xl p-6 text-white shadow-md relative overflow-hidden"
                         >
-                            <!-- Hiasan Background -->
                             <div class="absolute -right-10 -top-10 opacity-10">
                                 <svg
                                     width="150"
@@ -381,7 +458,6 @@ const formatDate = (dateString) => {
                                     ></path>
                                 </svg>
                             </div>
-
                             <h3
                                 class="text-lg font-bold mb-4 relative z-10 flex items-center"
                             >
@@ -390,7 +466,6 @@ const formatDate = (dateString) => {
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
-                                    xmlns="http://www.w3.org/2000/svg"
                                 >
                                     <path
                                         stroke-linecap="round"
@@ -401,9 +476,7 @@ const formatDate = (dateString) => {
                                 </svg>
                                 Log Aktivitas Terakhir
                             </h3>
-
                             <div class="relative z-10 space-y-4">
-                                <!-- Menampilkan maksimal 3 log aktivitas terbaru menggunakan loop -->
                                 <div
                                     v-for="(
                                         log, index
@@ -420,22 +493,22 @@ const formatDate = (dateString) => {
                                     <div
                                         class="flex justify-between items-center mt-1"
                                     >
-                                        <span class="text-xs text-indigo-300">
-                                            Oleh:
+                                        <span class="text-xs text-indigo-300"
+                                            >Oleh:
                                             {{
                                                 log.pembuat
                                                     ? log.pembuat.name
                                                     : "Sistem"
-                                            }}
-                                        </span>
+                                            }}</span
+                                        >
                                         <span
                                             class="text-xs font-medium text-indigo-200"
+                                            >{{
+                                                formatDateShort(log.created_at)
+                                            }}</span
                                         >
-                                            {{ formatDate(log.created_at) }}
-                                        </span>
                                     </div>
                                 </div>
-
                                 <div
                                     v-if="recent_documents.length === 0"
                                     class="text-sm text-indigo-300 italic"

@@ -6,6 +6,7 @@ import { ref } from "vue";
 const props = defineProps({
     surats: Array,
     jenis_surats: Array,
+    years: Array,
     userRole: String,
     filters: Object,
 });
@@ -16,8 +17,11 @@ const filterParams = ref({
     tahun: props.filters?.tahun || "",
 });
 
+// Menghasilkan 10 tahun ke belakang secara dinamis (misal: 2026 hingga 2016)
 const currentYear = new Date().getFullYear();
-const years = Array.from({ length: 11 }, (_, i) => currentYear - i);
+const dynamicYears = Array.from({ length: 11 }, (_, i) =>
+    (currentYear - i).toString(),
+);
 
 const applyFilter = () => {
     router.get(route("surat.index"), filterParams.value, {
@@ -30,9 +34,15 @@ const resetFilter = () => {
     applyFilter();
 };
 
+const setFilterTahun = (year) => {
+    filterParams.value.tahun = year;
+    applyFilter();
+};
+
 const form = useForm({
     nama_surat: "",
     deskripsi: "",
+    tahun_dokumen: currentYear.toString(),
     tanggal_surat: "",
     tanggal_berlaku: "",
     nomor_surat: "",
@@ -45,6 +55,7 @@ const editForm = useForm({
     id: null,
     nama_surat: "",
     deskripsi: "",
+    tahun_dokumen: "",
     tanggal_surat: "",
     tanggal_berlaku: "",
     nomor_surat: "",
@@ -59,6 +70,7 @@ const openEditModal = (surat) => {
     editForm.id = surat.id;
     editForm.nama_surat = surat.nama_surat;
     editForm.deskripsi = surat.deskripsi;
+    editForm.tahun_dokumen = surat.tahun_dokumen;
     editForm.tanggal_surat = surat.tanggal_surat;
     editForm.tanggal_berlaku = surat.tanggal_berlaku;
     editForm.nomor_surat = surat.nomor_surat;
@@ -232,6 +244,25 @@ const formatDateTime = (dateString) => {
                                 <div>
                                     <label
                                         class="block text-sm font-bold text-gray-700 mb-1"
+                                        >Tahun Dokumen (Pustaka)</label
+                                    >
+                                    <select
+                                        v-model="form.tahun_dokumen"
+                                        required
+                                        class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm transition font-bold text-indigo-700"
+                                    >
+                                        <option
+                                            v-for="year in dynamicYears"
+                                            :key="year"
+                                            :value="year"
+                                        >
+                                            {{ year }}
+                                        </option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label
+                                        class="block text-sm font-bold text-gray-700 mb-1"
                                         >Kategori Dokumen</label
                                     >
                                     <select
@@ -291,10 +322,10 @@ const formatDateTime = (dateString) => {
                                         "
                                     >
                                         <option value="umum">
-                                            Umum (Dapat dilihat publik)
+                                            Umum (Publik)
                                         </option>
                                         <option value="rahasia">
-                                            Rahasia (Hanya internal)
+                                            Rahasia (Internal)
                                         </option>
                                     </select>
                                 </div>
@@ -382,95 +413,344 @@ const formatDateTime = (dateString) => {
                     </div>
                 </div>
 
-                <!-- ================= FILTER ================= -->
-                <div
-                    class="bg-white shadow-sm border border-gray-200 sm:rounded-2xl p-6"
-                >
-                    <h3
-                        class="text-xs font-bold text-gray-500 mb-4 uppercase tracking-wider"
-                    >
-                        Pencarian & Filter Dokumen
-                    </h3>
-                    <div
-                        class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end"
-                    >
-                        <div class="md:col-span-2">
-                            <label
-                                class="block text-xs font-bold text-gray-700 mb-1.5"
-                                >Kata Kunci (Nama, Perihal, atau Nomor)</label
+                <!-- ================= LAYOUT SPLIT: SIDEBAR & KONTEN ================= -->
+                <div class="flex flex-col lg:flex-row gap-8 items-start">
+                    <!-- SIDEBAR KIRI: DAFTAR PUSTAKA TAHUN (DINAMIS DARI DATABASE) -->
+                    <div class="w-full lg:w-1/4 sticky top-24 space-y-6">
+                        <div
+                            class="bg-white rounded-2xl shadow-sm border border-gray-200 p-5"
+                        >
+                            <h3
+                                class="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4 border-b pb-3"
                             >
-                            <input
-                                v-model="filterParams.search"
-                                type="text"
-                                placeholder="Masukkan kata kunci pencarian..."
-                                class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition"
-                                @keyup.enter="applyFilter"
-                            />
-                        </div>
-                        <div>
-                            <label
-                                class="block text-xs font-bold text-gray-700 mb-1.5"
-                                >Tanggal Ditetapkan</label
-                            >
-                            <input
-                                v-model="filterParams.tanggal"
-                                type="date"
-                                class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition"
-                            />
-                        </div>
-                        <div>
-                            <label
-                                class="block text-xs font-bold text-gray-700 mb-1.5"
-                                >Tahun</label
-                            >
-                            <select
-                                v-model="filterParams.tahun"
-                                class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition"
-                            >
-                                <option value="">Semua Tahun</option>
-                                <option
+                                Daftar Pustaka
+                            </h3>
+                            <div class="flex flex-col space-y-1">
+                                <button
+                                    @click="setFilterTahun('')"
+                                    class="text-left px-4 py-2.5 rounded-lg text-sm font-bold transition-colors flex items-center justify-between"
+                                    :class="
+                                        filterParams.tahun === ''
+                                            ? 'bg-indigo-600 text-white shadow-md'
+                                            : 'text-gray-600 hover:bg-indigo-50'
+                                    "
+                                >
+                                    Semua Tahun
+                                    <svg
+                                        v-if="filterParams.tahun === ''"
+                                        class="w-4 h-4"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M9 5l7 7-7 7"
+                                        ></path>
+                                    </svg>
+                                </button>
+                                <button
                                     v-for="year in years"
                                     :key="year"
-                                    :value="year"
+                                    @click="setFilterTahun(year)"
+                                    class="text-left px-4 py-2.5 rounded-lg text-sm font-bold transition-colors flex items-center justify-between"
+                                    :class="
+                                        filterParams.tahun === year
+                                            ? 'bg-indigo-600 text-white shadow-md'
+                                            : 'text-gray-600 hover:bg-indigo-50'
+                                    "
                                 >
-                                    {{ year }}
-                                </option>
-                            </select>
-                        </div>
-                        <div
-                            class="md:col-span-4 flex justify-end space-x-3 mt-2"
-                        >
-                            <button
-                                @click="resetFilter"
-                                class="px-5 py-2.5 bg-gray-100 border border-transparent text-gray-700 text-sm font-bold rounded-lg hover:bg-gray-200 transition"
-                            >
-                                Reset
-                            </button>
-                            <button
-                                @click="applyFilter"
-                                class="px-6 py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-lg hover:bg-indigo-700 shadow-sm transition"
-                            >
-                                Terapkan Filter
-                            </button>
+                                    Tahun {{ year }}
+                                    <svg
+                                        v-if="filterParams.tahun === year"
+                                        class="w-4 h-4"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M9 5l7 7-7 7"
+                                        ></path>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- ================= CARD LIST ARSIP ================= -->
-                <div class="space-y-5">
-                    <div
-                        v-for="surat in surats"
-                        :key="surat.id"
-                        class="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 sm:p-6 flex flex-col sm:flex-row gap-5 sm:gap-6 hover:shadow-md hover:border-indigo-200 transition-all relative group"
-                    >
+                    <!-- KONTEN KANAN -->
+                    <div class="w-full lg:w-3/4 space-y-6">
                         <div
-                            class="flex-shrink-0 flex justify-center sm:justify-start"
+                            class="bg-white shadow-sm border border-gray-200 sm:rounded-2xl p-6"
                         >
+                            <h3
+                                class="text-xs font-bold text-gray-500 mb-4 uppercase tracking-wider"
+                            >
+                                Pencarian Spesifik
+                            </h3>
                             <div
-                                class="w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-2xl flex items-center justify-center shadow-inner border border-indigo-100/60 group-hover:scale-105 transition-transform"
+                                class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end"
+                            >
+                                <div class="md:col-span-2">
+                                    <label
+                                        class="block text-xs font-bold text-gray-700 mb-1.5"
+                                        >Kata Kunci (Nama, Perihal, atau
+                                        Nomor)</label
+                                    >
+                                    <input
+                                        v-model="filterParams.search"
+                                        type="text"
+                                        placeholder="Masukkan kata kunci pencarian..."
+                                        class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition"
+                                        @keyup.enter="applyFilter"
+                                    />
+                                </div>
+                                <div>
+                                    <label
+                                        class="block text-xs font-bold text-gray-700 mb-1.5"
+                                        >Tanggal Ditetapkan</label
+                                    >
+                                    <input
+                                        v-model="filterParams.tanggal"
+                                        type="date"
+                                        class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition"
+                                    />
+                                </div>
+                                <div
+                                    class="md:col-span-3 flex justify-end space-x-3 mt-2"
+                                >
+                                    <button
+                                        @click="resetFilter"
+                                        class="px-5 py-2.5 bg-gray-100 border border-transparent text-gray-700 text-sm font-bold rounded-lg hover:bg-gray-200 transition"
+                                    >
+                                        Reset
+                                    </button>
+                                    <button
+                                        @click="applyFilter"
+                                        class="px-6 py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-lg shadow-sm hover:bg-indigo-700 transition"
+                                    >
+                                        Terapkan Pencarian
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-between items-center px-1">
+                            <h3 class="text-sm font-bold text-gray-600">
+                                Menampilkan
+                                <span class="text-indigo-600">{{
+                                    surats.length
+                                }}</span>
+                                Dokumen
+                                <span v-if="filterParams.tahun"
+                                    >Tahun {{ filterParams.tahun }}</span
+                                >
+                            </h3>
+                        </div>
+
+                        <!-- CARD LIST -->
+                        <div class="space-y-5">
+                            <div
+                                v-for="surat in surats"
+                                :key="surat.id"
+                                class="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 sm:p-6 flex flex-col sm:flex-row gap-5 sm:gap-6 hover:shadow-md hover:border-indigo-200 transition-all relative group"
+                            >
+                                <div
+                                    class="flex-shrink-0 flex justify-center sm:justify-start"
+                                >
+                                    <div
+                                        class="w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-2xl flex items-center justify-center shadow-inner border border-indigo-100/60 group-hover:scale-105 transition-transform relative"
+                                    >
+                                        <div
+                                            class="absolute -top-3 -right-3 bg-indigo-600 text-white text-xs font-black px-2 py-1 rounded-lg shadow-sm border-2 border-white"
+                                        >
+                                            {{ surat.tahun_dokumen }}
+                                        </div>
+                                        <svg
+                                            class="w-10 h-10 sm:w-14 sm:h-14 text-indigo-600 drop-shadow-sm"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="1.5"
+                                                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                                            ></path>
+                                        </svg>
+                                    </div>
+                                </div>
+
+                                <div
+                                    class="flex-grow flex flex-col justify-between"
+                                >
+                                    <div>
+                                        <div
+                                            class="flex justify-between items-start mb-3"
+                                        >
+                                            <span
+                                                class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 uppercase tracking-wider border border-amber-200"
+                                            >
+                                                {{
+                                                    surat.jenis_surat
+                                                        ? surat.jenis_surat
+                                                              .nama_jenis
+                                                        : "TIDAK ADA KATEGORI"
+                                                }}
+                                            </span>
+                                            <div
+                                                v-if="userRole === 'admin'"
+                                                class="flex space-x-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                                            >
+                                                <button
+                                                    @click="
+                                                        openHistoryModal(surat)
+                                                    "
+                                                    class="px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white border border-transparent hover:border-blue-700 transition"
+                                                >
+                                                    Riwayat
+                                                </button>
+                                                <button
+                                                    @click="
+                                                        openEditModal(surat)
+                                                    "
+                                                    class="px-3 py-1.5 text-xs font-bold rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white border border-transparent hover:border-amber-600 transition"
+                                                >
+                                                    Edit
+                                                </button>
+                                                <button
+                                                    @click="
+                                                        deleteSurat(surat.id)
+                                                    "
+                                                    class="px-3 py-1.5 text-xs font-bold rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border border-transparent hover:border-red-700 transition"
+                                                >
+                                                    Hapus
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <h3
+                                            class="text-xl font-bold text-gray-900 leading-tight mb-1 group-hover:text-indigo-700 transition-colors"
+                                        >
+                                            {{ surat.nama_surat }}
+                                        </h3>
+                                        <p
+                                            class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-2"
+                                        >
+                                            NOMOR: {{ surat.nomor_surat }}
+                                        </p>
+                                        <p
+                                            class="text-sm text-gray-600 mb-4 line-clamp-2 border-l-2 border-indigo-200 pl-3 italic"
+                                        >
+                                            {{ surat.deskripsi }}
+                                        </p>
+                                    </div>
+
+                                    <div
+                                        class="bg-gray-50 rounded-xl p-3 flex flex-col sm:flex-row flex-wrap items-center gap-3 border border-gray-100 mt-2"
+                                    >
+                                        <div
+                                            class="flex items-center bg-white px-3 py-2 rounded-lg border border-gray-200 shadow-sm text-sm"
+                                        >
+                                            <span
+                                                class="text-gray-500 font-medium text-xs uppercase tracking-wide mr-2"
+                                                >Status</span
+                                            >
+                                            <span
+                                                :class="
+                                                    surat.sifat_surat ===
+                                                    'rahasia'
+                                                        ? 'text-red-700 bg-red-50'
+                                                        : 'text-emerald-700 bg-emerald-50'
+                                                "
+                                                class="px-2 py-0.5 rounded flex items-center font-bold capitalize text-xs"
+                                            >
+                                                <div
+                                                    :class="
+                                                        surat.sifat_surat ===
+                                                        'rahasia'
+                                                            ? 'bg-red-500'
+                                                            : 'bg-emerald-500'
+                                                    "
+                                                    class="w-1.5 h-1.5 rounded-full mr-1.5"
+                                                ></div>
+                                                {{ surat.sifat_surat }}
+                                            </span>
+                                        </div>
+                                        <div
+                                            class="flex items-center bg-white px-3 py-2 rounded-lg border border-gray-200 shadow-sm text-sm"
+                                        >
+                                            <span
+                                                class="text-gray-500 font-medium text-xs uppercase tracking-wide mr-2"
+                                                >Ditetapkan</span
+                                            >
+                                            <span
+                                                class="font-bold text-gray-900"
+                                                >{{
+                                                    formatDateShort(
+                                                        surat.tanggal_surat,
+                                                    )
+                                                }}</span
+                                            >
+                                        </div>
+                                        <div
+                                            class="flex items-center bg-white px-3 py-2 rounded-lg border border-gray-200 shadow-sm text-sm"
+                                        >
+                                            <span
+                                                class="text-gray-500 font-medium text-xs uppercase tracking-wide mr-2"
+                                                >Berlaku</span
+                                            >
+                                            <span
+                                                class="font-bold text-indigo-700"
+                                                >{{
+                                                    formatDateShort(
+                                                        surat.tanggal_berlaku,
+                                                    )
+                                                }}</span
+                                            >
+                                        </div>
+
+                                        <div
+                                            class="hidden sm:block flex-grow"
+                                        ></div>
+                                        <div
+                                            class="flex w-full sm:w-auto gap-2 mt-2 sm:mt-0"
+                                        >
+                                            <a
+                                                :href="
+                                                    route(
+                                                        'surat.lihat',
+                                                        surat.id,
+                                                    )
+                                                "
+                                                target="_blank"
+                                                class="flex-1 sm:flex-none text-center px-6 py-2 bg-white border border-indigo-600 text-indigo-700 hover:bg-indigo-50 font-bold text-sm rounded-lg transition-colors"
+                                                >Lihat</a
+                                            >
+                                            <a
+                                                :href="
+                                                    route(
+                                                        'surat.unduh',
+                                                        surat.id,
+                                                    )
+                                                "
+                                                class="flex-1 sm:flex-none text-center px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-lg shadow-sm transition-colors"
+                                                >Unduh</a
+                                            >
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div
+                                v-if="surats.length === 0"
+                                class="bg-white border border-gray-200 rounded-2xl p-16 text-center shadow-sm"
                             >
                                 <svg
-                                    class="w-10 h-10 sm:w-14 sm:h-14 text-indigo-600 drop-shadow-sm"
+                                    class="mx-auto h-12 w-12 text-gray-400 mb-4"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -479,135 +759,18 @@ const formatDateTime = (dateString) => {
                                         stroke-linecap="round"
                                         stroke-linejoin="round"
                                         stroke-width="1.5"
-                                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                                        d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                                     ></path>
                                 </svg>
-                            </div>
-                        </div>
-
-                        <div class="flex-grow flex flex-col justify-between">
-                            <div>
-                                <div
-                                    class="flex justify-between items-start mb-3"
-                                >
-                                    <span
-                                        class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 uppercase tracking-wider border border-amber-200"
-                                    >
-                                        {{
-                                            surat.jenis_surat
-                                                ? surat.jenis_surat.nama_jenis
-                                                : "TIDAK ADA KATEGORI"
-                                        }}
-                                    </span>
-                                    <div
-                                        v-if="userRole === 'admin'"
-                                        class="flex space-x-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
-                                    >
-                                        <button
-                                            @click="openHistoryModal(surat)"
-                                            class="px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white border border-transparent hover:border-blue-700 transition"
-                                        >
-                                            Riwayat
-                                        </button>
-                                        <button
-                                            @click="openEditModal(surat)"
-                                            class="px-3 py-1.5 text-xs font-bold rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white border border-transparent hover:border-amber-600 transition"
-                                        >
-                                            Edit
-                                        </button>
-                                        <button
-                                            @click="deleteSurat(surat.id)"
-                                            class="px-3 py-1.5 text-xs font-bold rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border border-transparent hover:border-red-700 transition"
-                                        >
-                                            Hapus
-                                        </button>
-                                    </div>
-                                </div>
                                 <h3
-                                    class="text-xl font-bold text-gray-900 leading-tight mb-1 group-hover:text-indigo-700 transition-colors"
+                                    class="text-lg font-bold text-gray-900 mb-1"
                                 >
-                                    {{ surat.nama_surat }}
+                                    Tidak Ada Dokumen
                                 </h3>
-                                <p
-                                    class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-2"
-                                >
-                                    NOMOR: {{ surat.nomor_surat }}
+                                <p class="text-gray-500 font-medium">
+                                    Belum ada dokumen yang sesuai dengan
+                                    kriteria pencarian Anda.
                                 </p>
-                                <p
-                                    class="text-sm text-gray-600 mb-4 line-clamp-2 border-l-2 border-indigo-200 pl-3 italic"
-                                >
-                                    {{ surat.deskripsi }}
-                                </p>
-                            </div>
-
-                            <div
-                                class="bg-gray-50 rounded-xl p-3 flex flex-col sm:flex-row flex-wrap items-center gap-3 border border-gray-100 mt-2"
-                            >
-                                <div
-                                    class="flex items-center bg-white px-3 py-2 rounded-lg border border-gray-200 shadow-sm text-sm"
-                                >
-                                    <span
-                                        class="text-gray-500 font-medium text-xs uppercase tracking-wide mr-2"
-                                        >Status</span
-                                    >
-                                    <span
-                                        :class="
-                                            surat.sifat_surat === 'rahasia'
-                                                ? 'text-red-700 bg-red-50'
-                                                : 'text-emerald-700 bg-emerald-50'
-                                        "
-                                        class="px-2 py-0.5 rounded flex items-center font-bold capitalize text-xs"
-                                    >
-                                        <div
-                                            :class="
-                                                surat.sifat_surat === 'rahasia'
-                                                    ? 'bg-red-500'
-                                                    : 'bg-emerald-500'
-                                            "
-                                            class="w-1.5 h-1.5 rounded-full mr-1.5"
-                                        ></div>
-                                        {{ surat.sifat_surat }}
-                                    </span>
-                                </div>
-                                <div
-                                    class="flex items-center bg-white px-3 py-2 rounded-lg border border-gray-200 shadow-sm text-sm"
-                                >
-                                    <span
-                                        class="text-gray-500 font-medium text-xs uppercase tracking-wide mr-2"
-                                        >Ditetapkan</span
-                                    >
-                                    <span class="font-bold text-gray-900">{{
-                                        formatDateShort(surat.tanggal_surat)
-                                    }}</span>
-                                </div>
-                                <div
-                                    class="flex items-center bg-white px-3 py-2 rounded-lg border border-gray-200 shadow-sm text-sm"
-                                >
-                                    <span
-                                        class="text-gray-500 font-medium text-xs uppercase tracking-wide mr-2"
-                                        >Berlaku</span
-                                    >
-                                    <span class="font-bold text-indigo-700">{{
-                                        formatDateShort(surat.tanggal_berlaku)
-                                    }}</span>
-                                </div>
-
-                                <div class="hidden sm:block flex-grow"></div>
-                                <div
-                                    class="flex w-full sm:w-auto gap-2 mt-2 sm:mt-0"
-                                >
-                                    <a
-                                        :href="route('surat.lihat', surat.id)"
-                                        target="_blank"
-                                        class="flex-1 sm:flex-none text-center px-6 py-2 bg-white border border-indigo-600 text-indigo-700 hover:bg-indigo-50 font-bold text-sm rounded-lg transition-colors"
-                                        >Lihat</a
-                                    >
-                                    <a
-                                        :href="route('surat.unduh', surat.id)"
-                                        class="flex-1 sm:flex-none text-center px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-lg shadow-sm transition-colors"
-                                        >Unduh</a
-                                    >
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -631,7 +794,7 @@ const formatDateTime = (dateString) => {
                             Revisi Dokumen
                         </h3>
                         <p class="text-xs font-medium text-gray-500 mt-1">
-                            Versi lama akan otomatis disimpan ke dalam Riwayat.
+                            Versi lama otomatis disimpan ke dalam Riwayat.
                         </p>
                     </div>
                     <button
@@ -670,7 +833,7 @@ const formatDateTime = (dateString) => {
                             class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm transition"
                         ></textarea>
                     </div>
-                    <div class="md:col-span-2">
+                    <div>
                         <label
                             class="block text-sm font-bold text-gray-700 mb-1"
                             >Nomor Surat</label
@@ -681,6 +844,25 @@ const formatDateTime = (dateString) => {
                             required
                             class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm transition"
                         />
+                    </div>
+                    <div>
+                        <label
+                            class="block text-sm font-bold text-gray-700 mb-1"
+                            >Tahun Dokumen (Pustaka)</label
+                        >
+                        <select
+                            v-model="editForm.tahun_dokumen"
+                            required
+                            class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm transition font-bold text-indigo-700"
+                        >
+                            <option
+                                v-for="year in dynamicYears"
+                                :key="year"
+                                :value="year"
+                            >
+                                {{ year }}
+                            </option>
+                        </select>
                     </div>
                     <div>
                         <label
@@ -879,7 +1061,6 @@ const formatDateTime = (dateString) => {
                                         )
                                     }}
                                 </p>
-
                                 <p
                                     class="text-xs text-gray-600 mb-4 line-clamp-2 italic"
                                 >

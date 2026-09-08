@@ -24,10 +24,18 @@ class SuratController extends Controller
             });
         }
         if ($request->filled('tanggal')) $query->whereDate('tanggal_surat', $request->tanggal);
-        if ($request->filled('tahun')) $query->whereYear('tanggal_surat', $request->tahun);
+        if ($request->filled('tahun')) {
+            $query->where('tahun_dokumen', $request->tahun);
+        }
+        $years = Surat::where('sifat_surat', 'umum')
+            ->select('tahun_dokumen')
+            ->distinct()
+            ->orderBy('tahun_dokumen', 'desc')
+            ->pluck('tahun_dokumen');
 
         return Inertia::render('Public/SuratPublik', [
             'surats'  => $query->latest()->get(),
+            'years'   => $years, // Kirim ke Vue
             'filters' => $request->only(['search', 'tanggal', 'tahun']),
         ]);
     }
@@ -45,11 +53,19 @@ class SuratController extends Controller
             });
         }
         if ($request->filled('tanggal')) $query->whereDate('tanggal_surat', $request->tanggal);
-        if ($request->filled('tahun')) $query->whereYear('tanggal_surat', $request->tahun);
+        if ($request->filled('tahun')) {
+            $query->where('tahun_dokumen', $request->tahun);
+        }
+
+        $years = Surat::select('tahun_dokumen')
+            ->distinct()
+            ->orderBy('tahun_dokumen', 'desc')
+            ->pluck('tahun_dokumen');
 
         return Inertia::render('Surat/Index', [
             'surats'       => $query->latest()->get(),
             'jenis_surats' => JenisSurat::all(),
+            'years'        => $years, // Kirim ke Vue
             'userRole'     => $user->role,
             'filters'      => $request->only(['search', 'tanggal', 'tahun']),
         ]);
@@ -62,6 +78,7 @@ class SuratController extends Controller
         $validated = $request->validate([
             'nama_surat'      => 'required|string|max:255',
             'deskripsi'       => 'required|string',
+            'tahun_dokumen'   => 'required|string|max:4',
             'tanggal_surat'   => 'required|date',
             'tanggal_berlaku' => 'required|date',
             'nomor_surat'     => 'required|string|max:100',
@@ -89,6 +106,7 @@ class SuratController extends Controller
         $validated = $request->validate([
             'nama_surat'      => 'required|string|max:255',
             'deskripsi'       => 'required|string',
+            'tahun_dokumen'   => 'required|string|max:4',
             'tanggal_surat'   => 'required|date',
             'tanggal_berlaku' => 'required|date',
             'nomor_surat'     => 'required|string|max:100',
@@ -102,6 +120,7 @@ class SuratController extends Controller
             'surat_id'             => $surat->id,
             'nama_surat_lama'      => $surat->nama_surat,
             'deskripsi_lama'       => $surat->deskripsi,
+            'tahun_dokumen_lama'   => $surat->tahun_dokumen,
             'tanggal_surat_lama'   => $surat->tanggal_surat,
             'tanggal_berlaku_lama' => $surat->tanggal_berlaku,
             'nomor_surat_lama'     => $surat->nomor_surat,
