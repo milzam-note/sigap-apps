@@ -13,7 +13,14 @@ class JenisSuratSeeder extends Seeder
      */
     public function run(): void
     {
-        JenisSurat::create(['nama_jenis' => 'Surat Perencanaan Kerja']);
-        JenisSurat::create(['nama_jenis' => 'Surat Perencanaan dan Strategi']);
+        JenisSurat::create(['nama_jenis' => 'Undang-Undang']);
+        JenisSurat::create(['nama_jenis' => 'Peraturan Menteri Keuangan']);
+        JenisSurat::create(['nama_jenis' => 'Keputusan Kapolri']);
+        JenisSurat::create(['nama_jenis' => 'Perdirjen Anggaran']);
+        JenisSurat::create(['nama_jenis' => 'Peraturan Dirjen Perbendaharaan']);
+        JenisSurat::create(['nama_jenis' => 'Peraturan Dirjen Perbendaharaan']);
+        JenisSurat::create(['nama_jenis' => 'Keputusan As SDM Kapolri']);
+        JenisSurat::create(['nama_jenis' => 'Dokumen Perencanaan Anggaran']);
+        JenisSurat::create(['nama_jenis' => 'Dokumen Anev Anggaran']);
     }
 }

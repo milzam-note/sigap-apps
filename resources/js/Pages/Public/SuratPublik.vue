@@ -42,7 +42,6 @@ const formatDateShort = (dateString) => {
 <template>
     <Head title="Portal Informasi Dokumen Perencanaan" />
 
-    <!-- PERUBAHAN: Penambahan flex flex-col untuk struktur tata letak -->
     <div class="min-h-screen bg-gray-50 flex flex-col relative z-0">
         <!-- ================= WATERMARK GLOBAL PUBLIK ================= -->
         <div
@@ -90,7 +89,6 @@ const formatDateShort = (dateString) => {
             </div>
         </nav>
 
-        <!-- PERUBAHAN: Penggunaan tag <main> dengan class flex-grow -->
         <main class="flex-grow py-10 relative z-10">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
                 <div class="text-center max-w-2xl mx-auto mb-10 mt-6 px-4">
@@ -117,10 +115,11 @@ const formatDateShort = (dateString) => {
                                 class="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide"
                                 >Cari Dokumen</label
                             >
+                            <!-- PERUBAHAN: Teks placeholder disesuaikan agar pengguna tahu bisa mencari deskripsi/perihal -->
                             <input
                                 v-model="filterParams.search"
                                 type="text"
-                                placeholder="Masukkan nama atau nomor dokumen..."
+                                placeholder="Masukkan nama, perihal, atau nomor dokumen..."
                                 class="w-full rounded-xl border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                 @keyup.enter="applyFilter"
                             />
@@ -229,9 +228,16 @@ const formatDateShort = (dateString) => {
                                     {{ surat.nama_surat }}
                                 </h3>
                                 <p
-                                    class="text-sm font-semibold text-gray-500 uppercase tracking-widest mb-4"
+                                    class="text-sm font-semibold text-gray-500 uppercase tracking-widest mb-2"
                                 >
                                     NOMOR: {{ surat.nomor_surat }}
+                                </p>
+
+                                <!-- PERUBAHAN: Menampilkan Deskripsi (Perihal) -->
+                                <p
+                                    class="text-sm text-gray-600 mb-4 line-clamp-2 border-l-2 border-indigo-200 pl-3 italic"
+                                >
+                                    {{ surat.deskripsi }}
                                 </p>
                             </div>
 
@@ -248,6 +254,23 @@ const formatDateShort = (dateString) => {
                                         class="ml-2 font-bold text-gray-900"
                                         >{{
                                             formatDateShort(surat.tanggal_surat)
+                                        }}</span
+                                    >
+                                </div>
+
+                                <!-- PERUBAHAN: Menampilkan Tanggal Berlaku -->
+                                <div
+                                    class="flex items-center bg-white px-3 py-1.5 rounded-lg border border-gray-200 shadow-sm text-sm"
+                                >
+                                    <span class="text-gray-600 font-medium"
+                                        >Berlaku:</span
+                                    >
+                                    <span
+                                        class="ml-2 font-bold text-indigo-700"
+                                        >{{
+                                            formatDateShort(
+                                                surat.tanggal_berlaku,
+                                            )
                                         }}</span
                                     >
                                 </div>
@@ -311,15 +334,13 @@ const formatDateShort = (dateString) => {
                                         :href="route('surat.lihat', surat.id)"
                                         target="_blank"
                                         class="flex-1 sm:flex-none text-center px-6 py-2 bg-white border border-indigo-600 text-indigo-600 hover:bg-indigo-50 font-bold text-sm rounded-lg transition-colors"
+                                        >Lihat</a
                                     >
-                                        Lihat
-                                    </a>
                                     <a
                                         :href="route('surat.unduh', surat.id)"
                                         class="flex-1 sm:flex-none text-center px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-lg shadow-sm transition-colors"
+                                        >Unduh</a
                                     >
-                                        Unduh
-                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -345,7 +366,7 @@ const formatDateShort = (dateString) => {
                         <h3 class="text-lg font-bold text-gray-900 mb-1">
                             Tidak Ada Dokumen
                         </h3>
-                        <p class="text-gray-500 font-medium">
+                        <p class="text-gray-500">
                             Belum ada dokumen terbuka yang sesuai dengan
                             pencarian Anda.
                         </p>
@@ -399,57 +420,6 @@ const formatDateShort = (dateString) => {
                                     <p>Jakarta Selatan, 12110</p>
                                 </div>
                             </div>
-
-                            <!-- Sitemap -->
-                            <!-- <div>
-                                <h4
-                                    class="text-gray-400 font-bold tracking-widest text-xs mb-4 uppercase"
-                                >
-                                    Sitemap
-                                </h4>
-                                <ul class="text-sm space-y-2.5">
-                                    <li>
-                                        <a
-                                            href="#"
-                                            class="hover:text-indigo-400 transition-colors flex items-center"
-                                            ><span
-                                                class="w-1.5 h-1.5 rounded-full bg-indigo-500 mr-2"
-                                            ></span>
-                                            Beranda</a
-                                        >
-                                    </li>
-                                    <li>
-                                        <a
-                                            href="#"
-                                            class="hover:text-indigo-400 transition-colors flex items-center"
-                                            ><span
-                                                class="w-1.5 h-1.5 rounded-full bg-indigo-500 mr-2"
-                                            ></span>
-                                            Pencarian Dokumen</a
-                                        >
-                                    </li>
-                                    <li>
-                                        <a
-                                            href="#"
-                                            class="hover:text-indigo-400 transition-colors flex items-center"
-                                            ><span
-                                                class="w-1.5 h-1.5 rounded-full bg-indigo-500 mr-2"
-                                            ></span>
-                                            Rekapitulasi Tahun</a
-                                        >
-                                    </li>
-                                    <li>
-                                        <a
-                                            href="#"
-                                            class="hover:text-indigo-400 transition-colors flex items-center"
-                                            ><span
-                                                class="w-1.5 h-1.5 rounded-full bg-indigo-500 mr-2"
-                                            ></span>
-                                            Portal Internal Admin</a
-                                        >
-                                    </li>
-                                </ul>
-                            </div> -->
 
                             <!-- Link Terkait -->
                             <div>

@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('nama_surat');
             $table->date('tanggal_surat');
+            $table->date('tanggal_berlaku');
+            $table->text('deskripsi');
             $table->string('nomor_surat');
 
             // Relasi ke Jenis Surat

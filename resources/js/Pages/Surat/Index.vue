@@ -10,7 +10,6 @@ const props = defineProps({
     filters: Object,
 });
 
-// --- PENCARIAN & FILTER ---
 const filterParams = ref({
     search: props.filters?.search || "",
     tanggal: props.filters?.tanggal || "",
@@ -26,16 +25,16 @@ const applyFilter = () => {
         preserveScroll: true,
     });
 };
-
 const resetFilter = () => {
     filterParams.value = { search: "", tanggal: "", tahun: "" };
     applyFilter();
 };
 
-// --- CRUD FORM ---
 const form = useForm({
     nama_surat: "",
+    deskripsi: "",
     tanggal_surat: "",
+    tanggal_berlaku: "",
     nomor_surat: "",
     jenis_surat_id: "",
     sifat_surat: "umum",
@@ -45,20 +44,23 @@ const form = useForm({
 const editForm = useForm({
     id: null,
     nama_surat: "",
+    deskripsi: "",
     tanggal_surat: "",
+    tanggal_berlaku: "",
     nomor_surat: "",
     jenis_surat_id: "",
     sifat_surat: "umum",
     file_pdf: null,
-    _method: "PUT", // Wajib untuk upload file saat update di Inertia
+    _method: "PUT",
 });
 
-// --- STATE MODAL EDIT ---
 const isEditModalOpen = ref(false);
 const openEditModal = (surat) => {
     editForm.id = surat.id;
     editForm.nama_surat = surat.nama_surat;
+    editForm.deskripsi = surat.deskripsi;
     editForm.tanggal_surat = surat.tanggal_surat;
+    editForm.tanggal_berlaku = surat.tanggal_berlaku;
     editForm.nomor_surat = surat.nomor_surat;
     editForm.jenis_surat_id = surat.jenis_surat_id;
     editForm.sifat_surat = surat.sifat_surat;
@@ -70,10 +72,8 @@ const closeEditModal = () => {
     editForm.reset();
 };
 
-// --- STATE MODAL RIWAYAT (LOG ACTIVITY) ---
 const isHistoryModalOpen = ref(false);
 const selectedSurat = ref(null);
-
 const openHistoryModal = (surat) => {
     selectedSurat.value = surat;
     isHistoryModalOpen.value = true;
@@ -83,7 +83,6 @@ const closeHistoryModal = () => {
     selectedSurat.value = null;
 };
 
-// --- ACTION SUBMIT ---
 const submitForm = () => {
     form.post(route("surat.store"), {
         onSuccess: () => {
@@ -110,7 +109,6 @@ const deleteSurat = (id) => {
     }
 };
 
-// --- FORMATTER ---
 const formatDateShort = (dateString) => {
     if (!dateString) return "-";
     const date = new Date(dateString);
@@ -147,18 +145,14 @@ const formatDateTime = (dateString) => {
 
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
-                <!-- ======================================================== -->
-                <!-- FORM TAMBAH SURAT (ADMIN ONLY)                           -->
-                <!-- ======================================================== -->
+                <!-- ================= TAMBAH SURAT ================= -->
                 <div
                     v-if="userRole === 'admin'"
                     class="bg-white shadow-sm border border-gray-200 sm:rounded-2xl overflow-hidden relative"
                 >
-                    <!-- Garis Aksen -->
                     <div
                         class="h-1 bg-indigo-600 w-full absolute top-0 left-0"
                     ></div>
-
                     <div class="p-6 sm:p-8">
                         <div class="flex items-center mb-6">
                             <div
@@ -180,7 +174,7 @@ const formatDateTime = (dateString) => {
                             </div>
                             <div>
                                 <h3 class="text-lg font-bold text-gray-900">
-                                    Dokumen Baru
+                                    Registrasi Dokumen Baru
                                 </h3>
                                 <p class="text-sm text-gray-500 font-medium">
                                     Unggah dan arsipkan dokumen perencanaan
@@ -193,14 +187,13 @@ const formatDateTime = (dateString) => {
                             @submit.prevent="submitForm"
                             class="grid grid-cols-1 md:grid-cols-12 gap-6"
                         >
-                            <!-- Kolom Kiri: Input Teks -->
                             <div
                                 class="md:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-5"
                             >
                                 <div class="sm:col-span-2">
                                     <label
                                         class="block text-sm font-bold text-gray-700 mb-1"
-                                        >Nama Dokumen</label
+                                        >Nama / Judul Dokumen</label
                                     >
                                     <input
                                         v-model="form.nama_surat"
@@ -209,6 +202,19 @@ const formatDateTime = (dateString) => {
                                         class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm transition"
                                         placeholder="Masukkan judul resmi dokumen..."
                                     />
+                                </div>
+                                <div class="sm:col-span-2">
+                                    <label
+                                        class="block text-sm font-bold text-gray-700 mb-1"
+                                        >Deskripsi / Perihal</label
+                                    >
+                                    <textarea
+                                        v-model="form.deskripsi"
+                                        rows="2"
+                                        required
+                                        class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm transition"
+                                        placeholder="Jelaskan secara singkat isi atau perihal dari dokumen ini..."
+                                    ></textarea>
                                 </div>
                                 <div>
                                     <label
@@ -221,18 +227,6 @@ const formatDateTime = (dateString) => {
                                         required
                                         class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm transition"
                                         placeholder="Contoh: KEP/123/XII/2026"
-                                    />
-                                </div>
-                                <div>
-                                    <label
-                                        class="block text-sm font-bold text-gray-700 mb-1"
-                                        >Tanggal Ditetapkan</label
-                                    >
-                                    <input
-                                        v-model="form.tanggal_surat"
-                                        type="date"
-                                        required
-                                        class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm transition"
                                     />
                                 </div>
                                 <div>
@@ -260,6 +254,30 @@ const formatDateTime = (dateString) => {
                                 <div>
                                     <label
                                         class="block text-sm font-bold text-gray-700 mb-1"
+                                        >Tanggal Ditetapkan</label
+                                    >
+                                    <input
+                                        v-model="form.tanggal_surat"
+                                        type="date"
+                                        required
+                                        class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm transition"
+                                    />
+                                </div>
+                                <div>
+                                    <label
+                                        class="block text-sm font-bold text-gray-700 mb-1"
+                                        >Tanggal Berlaku</label
+                                    >
+                                    <input
+                                        v-model="form.tanggal_berlaku"
+                                        type="date"
+                                        required
+                                        class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm transition"
+                                    />
+                                </div>
+                                <div class="sm:col-span-2">
+                                    <label
+                                        class="block text-sm font-bold text-gray-700 mb-1"
                                         >Sifat & Keamanan</label
                                     >
                                     <select
@@ -282,7 +300,6 @@ const formatDateTime = (dateString) => {
                                 </div>
                             </div>
 
-                            <!-- Kolom Kanan: Upload File -->
                             <div
                                 class="md:col-span-4 flex flex-col justify-between"
                             >
@@ -292,7 +309,7 @@ const formatDateTime = (dateString) => {
                                         >Berkas Digital (PDF)</label
                                     >
                                     <div
-                                        class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-xl hover:bg-indigo-50 hover:border-indigo-300 transition-colors cursor-pointer group"
+                                        class="mt-1 flex justify-center px-6 pt-10 pb-10 border-2 border-gray-300 border-dashed rounded-xl hover:bg-indigo-50 hover:border-indigo-300 transition-colors cursor-pointer group h-full items-center"
                                         onclick="
                                             document
                                                 .getElementById('file_input')
@@ -317,13 +334,10 @@ const formatDateTime = (dateString) => {
                                                 class="flex text-sm text-gray-600 justify-center"
                                             >
                                                 <span
-                                                    class="relative cursor-pointer bg-transparent rounded-md font-bold text-indigo-600 hover:text-indigo-500 focus-within:outline-none"
+                                                    class="relative cursor-pointer bg-transparent rounded-md font-bold text-indigo-600 hover:text-indigo-500"
+                                                    >Pilih File PDF</span
                                                 >
-                                                    Pilih File PDF
-                                                </span>
                                             </div>
-
-                                            <!-- PERUBAHAN DI SINI: Teks dinamis menggunakan Vue Reactivity -->
                                             <p
                                                 class="text-xs font-medium"
                                                 :class="
@@ -339,8 +353,6 @@ const formatDateTime = (dateString) => {
                                                 }}
                                             </p>
                                         </div>
-
-                                        <!-- PERUBAHAN DI SINI: Hanya menyimpan objek file ke form state -->
                                         <input
                                             id="file_input"
                                             type="file"
@@ -361,7 +373,7 @@ const formatDateTime = (dateString) => {
                                 <button
                                     type="submit"
                                     :disabled="form.processing"
-                                    class="w-full mt-4 flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 transition"
+                                    class="w-full mt-4 flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 transition"
                                 >
                                     Simpan Dokumen
                                 </button>
@@ -370,9 +382,7 @@ const formatDateTime = (dateString) => {
                     </div>
                 </div>
 
-                <!-- ======================================================== -->
-                <!-- FILTER BAR                                               -->
-                <!-- ======================================================== -->
+                <!-- ================= FILTER ================= -->
                 <div
                     class="bg-white shadow-sm border border-gray-200 sm:rounded-2xl p-6"
                 >
@@ -387,7 +397,7 @@ const formatDateTime = (dateString) => {
                         <div class="md:col-span-2">
                             <label
                                 class="block text-xs font-bold text-gray-700 mb-1.5"
-                                >Kata Kunci (Nama / Nomor)</label
+                                >Kata Kunci (Nama, Perihal, atau Nomor)</label
                             >
                             <input
                                 v-model="filterParams.search"
@@ -446,24 +456,13 @@ const formatDateTime = (dateString) => {
                     </div>
                 </div>
 
-                <div class="flex justify-between items-center px-1">
-                    <h3 class="text-sm font-bold text-gray-600">
-                        Menampilkan
-                        <span class="text-indigo-600">{{ surats.length }}</span>
-                        Dokumen
-                    </h3>
-                </div>
-
-                <!-- ======================================================== -->
-                <!-- CARD LIST ARSIP DOKUMEN                                  -->
-                <!-- ======================================================== -->
+                <!-- ================= CARD LIST ARSIP ================= -->
                 <div class="space-y-5">
                     <div
                         v-for="surat in surats"
                         :key="surat.id"
                         class="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 sm:p-6 flex flex-col sm:flex-row gap-5 sm:gap-6 hover:shadow-md hover:border-indigo-200 transition-all relative group"
                     >
-                        <!-- Kotak Ikon Kiri -->
                         <div
                             class="flex-shrink-0 flex justify-center sm:justify-start"
                         >
@@ -486,7 +485,6 @@ const formatDateTime = (dateString) => {
                             </div>
                         </div>
 
-                        <!-- Konten Teks Kanan -->
                         <div class="flex-grow flex flex-col justify-between">
                             <div>
                                 <div
@@ -501,8 +499,6 @@ const formatDateTime = (dateString) => {
                                                 : "TIDAK ADA KATEGORI"
                                         }}
                                     </span>
-
-                                    <!-- Aksi Admin (Riwayat, Edit, Hapus) -->
                                     <div
                                         v-if="userRole === 'admin'"
                                         class="flex space-x-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
@@ -527,20 +523,23 @@ const formatDateTime = (dateString) => {
                                         </button>
                                     </div>
                                 </div>
-
                                 <h3
-                                    class="text-xl sm:text-2xl font-bold text-gray-900 leading-tight mb-2 group-hover:text-indigo-700 transition-colors"
+                                    class="text-xl font-bold text-gray-900 leading-tight mb-1 group-hover:text-indigo-700 transition-colors"
                                 >
                                     {{ surat.nama_surat }}
                                 </h3>
                                 <p
-                                    class="text-sm font-semibold text-gray-500 uppercase tracking-widest mb-4"
+                                    class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-2"
                                 >
                                     NOMOR: {{ surat.nomor_surat }}
                                 </p>
+                                <p
+                                    class="text-sm text-gray-600 mb-4 line-clamp-2 border-l-2 border-indigo-200 pl-3 italic"
+                                >
+                                    {{ surat.deskripsi }}
+                                </p>
                             </div>
 
-                            <!-- Bar Bawah -->
                             <div
                                 class="bg-gray-50 rounded-xl p-3 flex flex-col sm:flex-row flex-wrap items-center gap-3 border border-gray-100 mt-2"
                             >
@@ -581,60 +580,19 @@ const formatDateTime = (dateString) => {
                                         formatDateShort(surat.tanggal_surat)
                                     }}</span>
                                 </div>
-
                                 <div
-                                    class="flex items-center bg-white px-3 py-2 rounded-lg border border-gray-200 shadow-sm text-sm font-bold"
+                                    class="flex items-center bg-white px-3 py-2 rounded-lg border border-gray-200 shadow-sm text-sm"
                                 >
                                     <span
-                                        class="flex items-center text-blue-600"
-                                        title="Total Dilihat"
+                                        class="text-gray-500 font-medium text-xs uppercase tracking-wide mr-2"
+                                        >Berlaku</span
                                     >
-                                        <svg
-                                            class="w-4 h-4 mr-1.5"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="2"
-                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                            ></path>
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="2"
-                                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                            ></path>
-                                        </svg>
-                                        {{ surat.jumlah_dilihat }}
-                                    </span>
-                                    <span class="mx-3 text-gray-300">|</span>
-                                    <span
-                                        class="flex items-center text-emerald-600"
-                                        title="Total Diunduh"
-                                    >
-                                        <svg
-                                            class="w-4 h-4 mr-1.5"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="2"
-                                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                                            ></path>
-                                        </svg>
-                                        {{ surat.jumlah_unduh }}
-                                    </span>
+                                    <span class="font-bold text-indigo-700">{{
+                                        formatDateShort(surat.tanggal_berlaku)
+                                    }}</span>
                                 </div>
 
                                 <div class="hidden sm:block flex-grow"></div>
-
-                                <!-- Tombol Aksi -->
                                 <div
                                     class="flex w-full sm:w-auto gap-2 mt-2 sm:mt-0"
                                 >
@@ -642,52 +600,22 @@ const formatDateTime = (dateString) => {
                                         :href="route('surat.lihat', surat.id)"
                                         target="_blank"
                                         class="flex-1 sm:flex-none text-center px-6 py-2 bg-white border border-indigo-600 text-indigo-700 hover:bg-indigo-50 font-bold text-sm rounded-lg transition-colors"
+                                        >Lihat</a
                                     >
-                                        Lihat
-                                    </a>
                                     <a
                                         :href="route('surat.unduh', surat.id)"
                                         class="flex-1 sm:flex-none text-center px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-lg shadow-sm transition-colors"
+                                        >Unduh</a
                                     >
-                                        Unduh
-                                    </a>
                                 </div>
                             </div>
                         </div>
-                    </div>
-
-                    <div
-                        v-if="surats.length === 0"
-                        class="bg-white border border-gray-200 rounded-2xl p-16 text-center shadow-sm"
-                    >
-                        <svg
-                            class="mx-auto h-12 w-12 text-gray-400 mb-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="1.5"
-                                d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                            ></path>
-                        </svg>
-                        <h3 class="text-lg font-bold text-gray-900 mb-1">
-                            Tidak Ada Dokumen
-                        </h3>
-                        <p class="text-gray-500">
-                            Belum ada dokumen yang sesuai dengan kriteria
-                            pencarian Anda.
-                        </p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- ============================================== -->
-        <!-- MODAL EDIT SURAT                               -->
-        <!-- ============================================== -->
+        <!-- ================= MODAL EDIT ================= -->
         <div
             v-if="isEditModalOpen"
             class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4"
@@ -730,7 +658,19 @@ const formatDateTime = (dateString) => {
                             class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm transition"
                         />
                     </div>
-                    <div>
+                    <div class="md:col-span-2">
+                        <label
+                            class="block text-sm font-bold text-gray-700 mb-1"
+                            >Deskripsi / Perihal</label
+                        >
+                        <textarea
+                            v-model="editForm.deskripsi"
+                            rows="2"
+                            required
+                            class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm transition"
+                        ></textarea>
+                    </div>
+                    <div class="md:col-span-2">
                         <label
                             class="block text-sm font-bold text-gray-700 mb-1"
                             >Nomor Surat</label
@@ -738,18 +678,6 @@ const formatDateTime = (dateString) => {
                         <input
                             v-model="editForm.nomor_surat"
                             type="text"
-                            required
-                            class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm transition"
-                        />
-                    </div>
-                    <div>
-                        <label
-                            class="block text-sm font-bold text-gray-700 mb-1"
-                            >Tanggal Ditetapkan</label
-                        >
-                        <input
-                            v-model="editForm.tanggal_surat"
-                            type="date"
                             required
                             class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm transition"
                         />
@@ -788,13 +716,33 @@ const formatDateTime = (dateString) => {
                                     : 'text-emerald-700'
                             "
                         >
-                            <option value="umum">
-                                Umum (Dapat dilihat publik)
-                            </option>
-                            <option value="rahasia">
-                                Rahasia (Hanya internal)
-                            </option>
+                            <option value="umum">Umum (Publik)</option>
+                            <option value="rahasia">Rahasia (Internal)</option>
                         </select>
+                    </div>
+                    <div>
+                        <label
+                            class="block text-sm font-bold text-gray-700 mb-1"
+                            >Tanggal Ditetapkan</label
+                        >
+                        <input
+                            v-model="editForm.tanggal_surat"
+                            type="date"
+                            required
+                            class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm transition"
+                        />
+                    </div>
+                    <div>
+                        <label
+                            class="block text-sm font-bold text-gray-700 mb-1"
+                            >Tanggal Berlaku</label
+                        >
+                        <input
+                            v-model="editForm.tanggal_berlaku"
+                            type="date"
+                            required
+                            class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm transition"
+                        />
                     </div>
 
                     <div
@@ -805,8 +753,7 @@ const formatDateTime = (dateString) => {
                             >Unggah PDF Baru (Opsional)</label
                         >
                         <p class="text-xs font-medium text-blue-600 mb-3">
-                            Kosongkan jika hanya merevisi informasi teks di
-                            atas.
+                            Kosongkan jika hanya merevisi teks.
                         </p>
                         <input
                             type="file"
@@ -840,9 +787,7 @@ const formatDateTime = (dateString) => {
             </div>
         </div>
 
-        <!-- ============================================== -->
-        <!-- MODAL RIWAYAT (LOG ACTIVITY)                   -->
-        <!-- ============================================== -->
+        <!-- ================= MODAL RIWAYAT ================= -->
         <div
             v-if="isHistoryModalOpen"
             class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4"
@@ -885,14 +830,12 @@ const formatDateTime = (dateString) => {
                             :key="log.id"
                             class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group"
                         >
-                            <!-- Label Lingkaran Versi -->
                             <div
                                 class="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white bg-indigo-100 text-indigo-700 shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-sm relative z-10 font-black text-sm"
                             >
                                 V{{ selectedSurat.riwayat.length - index }}
                             </div>
 
-                            <!-- Kotak Detail Riwayat -->
                             <div
                                 class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white border border-gray-200 p-5 rounded-2xl shadow-sm hover:shadow-md hover:border-indigo-200 transition-all"
                             >
@@ -906,9 +849,8 @@ const formatDateTime = (dateString) => {
                                                 : 'bg-emerald-50 text-emerald-700 border-emerald-100'
                                         "
                                         class="px-2.5 py-1 border font-bold text-xs rounded-md uppercase"
+                                        >{{ log.sifat_surat_lama }}</span
                                     >
-                                        {{ log.sifat_surat_lama }}
-                                    </span>
                                     <span
                                         class="text-xs font-bold text-gray-500 bg-gray-50 px-2 py-1 rounded"
                                         >{{
@@ -916,17 +858,32 @@ const formatDateTime = (dateString) => {
                                         }}</span
                                     >
                                 </div>
-
                                 <h4
-                                    class="font-bold text-gray-900 text-base mb-1 line-clamp-2"
+                                    class="font-bold text-gray-900 text-base mb-1"
                                     :title="log.nama_surat_lama"
                                 >
                                     {{ log.nama_surat_lama }}
                                 </h4>
                                 <p
-                                    class="text-xs font-semibold text-gray-500 mb-4 pb-3 border-b border-gray-100"
+                                    class="text-xs font-semibold text-gray-500 mb-1"
                                 >
                                     No: {{ log.nomor_surat_lama }}
+                                </p>
+                                <p
+                                    class="text-xs font-semibold text-gray-500 mb-3 pb-3 border-b border-gray-100"
+                                >
+                                    Berlaku:
+                                    {{
+                                        formatDateShort(
+                                            log.tanggal_berlaku_lama,
+                                        )
+                                    }}
+                                </p>
+
+                                <p
+                                    class="text-xs text-gray-600 mb-4 line-clamp-2 italic"
+                                >
+                                    "{{ log.deskripsi_lama }}"
                                 </p>
 
                                 <div
@@ -980,29 +937,7 @@ const formatDateTime = (dateString) => {
                             </div>
                         </div>
                     </div>
-
-                    <!-- Jika Tidak Ada Riwayat -->
                     <div v-else class="text-center py-12">
-                        <div
-                            class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100"
-                        >
-                            <svg
-                                class="w-10 h-10 text-gray-300"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                                ></path>
-                            </svg>
-                        </div>
-                        <h4 class="text-gray-900 font-bold text-lg mb-1">
-                            Belum Ada Riwayat Revisi
-                        </h4>
                         <p
                             class="text-sm font-medium text-gray-500 max-w-xs mx-auto"
                         >
@@ -1017,7 +952,6 @@ const formatDateTime = (dateString) => {
 </template>
 
 <style scoped>
-/* Kustomisasi Scrollbar untuk Modal Riwayat */
 .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
 }
