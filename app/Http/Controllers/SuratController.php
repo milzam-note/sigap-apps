@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Inertia\Inertia;
 use App\Models\Surat;
 use App\Models\JenisSurat;
-use App\Models\RiwayatSurat; // Tambahkan import Model RiwayatSurat
+use App\Models\RiwayatSurat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
@@ -20,13 +20,12 @@ class SuratController extends Controller
             $query->where(function ($q) use ($request) {
                 $q->where('nama_surat', 'like', '%' . $request->search . '%')
                     ->orWhere('nomor_surat', 'like', '%' . $request->search . '%')
-                    ->orWhere('deskripsi', 'like', '%' . $request->search . '%'); // Bisa cari lewat deskripsi
+                    ->orWhere('deskripsi', 'like', '%' . $request->search . '%');
             });
         }
         if ($request->filled('tanggal')) $query->whereDate('tanggal_surat', $request->tanggal);
-        if ($request->filled('tahun')) {
-            $query->where('tahun_dokumen', $request->tahun);
-        }
+        if ($request->filled('tahun')) $query->where('tahun_dokumen', $request->tahun);
+
         $years = Surat::where('sifat_surat', 'umum')
             ->select('tahun_dokumen')
             ->distinct()
@@ -35,7 +34,7 @@ class SuratController extends Controller
 
         return Inertia::render('Public/SuratPublik', [
             'surats'  => $query->latest()->get(),
-            'years'   => $years, // Kirim ke Vue
+            'years'   => $years,
             'filters' => $request->only(['search', 'tanggal', 'tahun']),
         ]);
     }
@@ -53,9 +52,7 @@ class SuratController extends Controller
             });
         }
         if ($request->filled('tanggal')) $query->whereDate('tanggal_surat', $request->tanggal);
-        if ($request->filled('tahun')) {
-            $query->where('tahun_dokumen', $request->tahun);
-        }
+        if ($request->filled('tahun')) $query->where('tahun_dokumen', $request->tahun);
 
         $years = Surat::select('tahun_dokumen')
             ->distinct()
@@ -65,7 +62,7 @@ class SuratController extends Controller
         return Inertia::render('Surat/Index', [
             'surats'       => $query->latest()->get(),
             'jenis_surats' => JenisSurat::all(),
-            'years'        => $years, // Kirim ke Vue
+            'years'        => $years,
             'userRole'     => $user->role,
             'filters'      => $request->only(['search', 'tanggal', 'tahun']),
         ]);
@@ -80,7 +77,6 @@ class SuratController extends Controller
             'deskripsi'       => 'required|string',
             'tahun_dokumen'   => 'required|string|max:4',
             'tanggal_surat'   => 'required|date',
-            'tanggal_berlaku' => 'required|date',
             'nomor_surat'     => 'required|string|max:100',
             'jenis_surat_id'  => 'required|exists:jenis_surats,id',
             'sifat_surat'     => 'required|in:umum,rahasia',
@@ -108,21 +104,18 @@ class SuratController extends Controller
             'deskripsi'       => 'required|string',
             'tahun_dokumen'   => 'required|string|max:4',
             'tanggal_surat'   => 'required|date',
-            'tanggal_berlaku' => 'required|date',
             'nomor_surat'     => 'required|string|max:100',
             'jenis_surat_id'  => 'required|exists:jenis_surats,id',
             'sifat_surat'     => 'required|in:umum,rahasia',
             'file_pdf'        => 'nullable|file|mimes:pdf|max:10240',
         ]);
 
-        // BACKUP DATA LAMA
         RiwayatSurat::create([
             'surat_id'             => $surat->id,
             'nama_surat_lama'      => $surat->nama_surat,
             'deskripsi_lama'       => $surat->deskripsi,
             'tahun_dokumen_lama'   => $surat->tahun_dokumen,
             'tanggal_surat_lama'   => $surat->tanggal_surat,
-            'tanggal_berlaku_lama' => $surat->tanggal_berlaku,
             'nomor_surat_lama'     => $surat->nomor_surat,
             'jenis_surat_id_lama'  => $surat->jenis_surat_id,
             'sifat_surat_lama'     => $surat->sifat_surat,
@@ -147,9 +140,13 @@ class SuratController extends Controller
         if (Auth::user()->role !== 'admin') abort(403);
         $surat = Surat::with('riwayat')->findOrFail($id);
         $pdfsToDelete = [$surat->file_pdf];
-        foreach ($surat->riwayat as $riwayat) $pdfsToDelete[] = $riwayat->file_pdf_lama;
+        foreach ($surat->riwayat as $riwayat) {
+            $pdfsToDelete[] = $riwayat->file_pdf_lama;
+        }
         foreach (array_unique($pdfsToDelete) as $pdf) {
-            if ($pdf && Storage::disk('public')->exists($pdf)) Storage::disk('public')->delete($pdf);
+            if ($pdf && Storage::disk('public')->exists($pdf)) {
+                Storage::disk('public')->delete($pdf);
+            }
         }
         $surat->delete();
         return redirect()->back()->with('message', 'Dokumen dihapus.');

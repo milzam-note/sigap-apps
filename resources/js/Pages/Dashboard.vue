@@ -12,10 +12,8 @@ const props = defineProps({
 
 const user = usePage().props.auth.user;
 
-// --- FILTER UNTUK DASHBOARD INTERNAL ---
 const filterParams = ref({
     search: props.filters?.search || "",
-    tanggal_berlaku: props.filters?.tanggal_berlaku || "",
     tahun: props.filters?.tahun || "",
 });
 
@@ -32,7 +30,7 @@ const applyFilter = () => {
 };
 
 const resetFilter = () => {
-    filterParams.value = { search: "", tanggal_berlaku: "", tahun: "" };
+    filterParams.value = { search: "", tahun: "" };
     applyFilter();
 };
 
@@ -53,11 +51,8 @@ const formatDateShort = (dateString) => {
     <AuthenticatedLayout>
         <div class="py-8">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
-                <!-- GRID UTAMA -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- ================= BAGIAN KIRI: KONTEN UTAMA ================= -->
                     <div class="lg:col-span-2 space-y-6">
-                        <!-- 1. WELCOME BANNER -->
                         <div
                             class="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between shadow-sm border border-indigo-100"
                         >
@@ -99,8 +94,7 @@ const formatDateShort = (dateString) => {
                             </div>
                         </div>
 
-                        <!-- 2. FILTER PENCARIAN DASHBOARD INTERNAL -->
-                        <!-- <div
+                        <div
                             class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200"
                         >
                             <h3
@@ -109,7 +103,7 @@ const formatDateShort = (dateString) => {
                                 Pencarian Arsip Dokumen
                             </h3>
                             <div
-                                class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end"
+                                class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end"
                             >
                                 <div>
                                     <label
@@ -122,17 +116,6 @@ const formatDateShort = (dateString) => {
                                         placeholder="Cari nama atau nomor..."
                                         class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition"
                                         @keyup.enter="applyFilter"
-                                    />
-                                </div>
-                                <div>
-                                    <label
-                                        class="block text-xs font-bold text-gray-700 mb-1.5"
-                                        >Tanggal Berlaku</label
-                                    >
-                                    <input
-                                        v-model="filterParams.tanggal_berlaku"
-                                        type="date"
-                                        class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition"
                                     />
                                 </div>
                                 <div>
@@ -155,7 +138,7 @@ const formatDateShort = (dateString) => {
                                     </select>
                                 </div>
                                 <div
-                                    class="md:col-span-3 flex justify-end space-x-3 mt-2"
+                                    class="md:col-span-2 flex justify-end space-x-3 mt-2"
                                 >
                                     <button
                                         @click="resetFilter"
@@ -171,9 +154,8 @@ const formatDateShort = (dateString) => {
                                     </button>
                                 </div>
                             </div>
-                        </div> -->
+                        </div>
 
-                        <!-- 3. LIST DOKUMEN TERBARU (BERBENTUK CARD KECIL SEPERTI GAMBAR) -->
                         <div class="space-y-4">
                             <h3 class="text-lg font-bold text-gray-900 px-1">
                                 Dokumen Terbaru
@@ -269,22 +251,6 @@ const formatDateShort = (dateString) => {
                                             }}</span
                                         >
                                     </div>
-                                    <div
-                                        class="text-xs bg-gray-50 px-2.5 py-1.5 rounded-lg border border-gray-100"
-                                    >
-                                        <span
-                                            class="text-gray-400 block text-[10px] uppercase font-bold"
-                                            >Berlaku</span
-                                        >
-                                        <span
-                                            class="font-semibold text-indigo-700"
-                                            >{{
-                                                formatDateShort(
-                                                    surat.tanggal_berlaku,
-                                                )
-                                            }}</span
-                                        >
-                                    </div>
                                     <div class="flex gap-1.5 ml-2">
                                         <a
                                             :href="
@@ -314,15 +280,12 @@ const formatDateShort = (dateString) => {
                         </div>
                     </div>
 
-                    <!-- ================= BAGIAN KANAN: STATISTIK & LOG ================= -->
                     <div class="space-y-6">
                         <h3 class="text-lg font-bold text-gray-900 pt-2">
                             Statistik Data
                         </h3>
 
-                        <!-- GRID STATISTIK KARTU (2x2) -->
                         <div class="grid grid-cols-2 gap-4">
-                            <!-- Total Dokumen -->
                             <div
                                 class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between h-32 relative overflow-hidden group"
                             >
@@ -350,7 +313,6 @@ const formatDateShort = (dateString) => {
                                     ></path>
                                 </svg>
                             </div>
-                            <!-- Total Interaksi -->
                             <div
                                 class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between h-32 relative overflow-hidden group"
                             >
@@ -384,7 +346,6 @@ const formatDateShort = (dateString) => {
                                     ></path>
                                 </svg>
                             </div>
-                            <!-- Dokumen Umum -->
                             <div
                                 class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between h-32 relative overflow-hidden group"
                             >
@@ -412,7 +373,6 @@ const formatDateShort = (dateString) => {
                                     ></path>
                                 </svg>
                             </div>
-                            <!-- Dokumen Rahasia -->
                             <div
                                 class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between h-32 relative overflow-hidden group"
                             >
@@ -442,7 +402,6 @@ const formatDateShort = (dateString) => {
                             </div>
                         </div>
 
-                        <!-- LOG AKTIVITAS TERAKHIR -->
                         <div
                             class="bg-gradient-to-br from-indigo-900 to-blue-800 rounded-2xl p-6 text-white shadow-md relative overflow-hidden"
                         >

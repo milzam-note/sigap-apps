@@ -17,7 +17,6 @@ return new class extends Migration
             // Kolom untuk menampung data versi lama
             $table->string('nama_surat_lama');
             $table->date('tanggal_surat_lama');
-            $table->date('tanggal_berlaku_lama');
             $table->text('deskripsi_lama');
             $table->string('tahun_dokumen_lama', 4);
             $table->string('nomor_surat_lama');

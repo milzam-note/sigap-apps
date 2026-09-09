@@ -17,7 +17,6 @@ const filterParams = ref({
     tahun: props.filters?.tahun || "",
 });
 
-// Menghasilkan 10 tahun ke belakang secara dinamis (misal: 2026 hingga 2016)
 const currentYear = new Date().getFullYear();
 const dynamicYears = Array.from({ length: 11 }, (_, i) =>
     (currentYear - i).toString(),
@@ -44,7 +43,6 @@ const form = useForm({
     deskripsi: "",
     tahun_dokumen: currentYear.toString(),
     tanggal_surat: "",
-    tanggal_berlaku: "",
     nomor_surat: "",
     jenis_surat_id: "",
     sifat_surat: "umum",
@@ -57,7 +55,6 @@ const editForm = useForm({
     deskripsi: "",
     tahun_dokumen: "",
     tanggal_surat: "",
-    tanggal_berlaku: "",
     nomor_surat: "",
     jenis_surat_id: "",
     sifat_surat: "umum",
@@ -72,7 +69,6 @@ const openEditModal = (surat) => {
     editForm.deskripsi = surat.deskripsi;
     editForm.tahun_dokumen = surat.tahun_dokumen;
     editForm.tanggal_surat = surat.tanggal_surat;
-    editForm.tanggal_berlaku = surat.tanggal_berlaku;
     editForm.nomor_surat = surat.nomor_surat;
     editForm.jenis_surat_id = surat.jenis_surat_id;
     editForm.sifat_surat = surat.sifat_surat;
@@ -294,18 +290,6 @@ const formatDateTime = (dateString) => {
                                         class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm transition"
                                     />
                                 </div>
-                                <div>
-                                    <label
-                                        class="block text-sm font-bold text-gray-700 mb-1"
-                                        >Tanggal Berlaku</label
-                                    >
-                                    <input
-                                        v-model="form.tanggal_berlaku"
-                                        type="date"
-                                        required
-                                        class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm transition"
-                                    />
-                                </div>
                                 <div class="sm:col-span-2">
                                     <label
                                         class="block text-sm font-bold text-gray-700 mb-1"
@@ -415,7 +399,6 @@ const formatDateTime = (dateString) => {
 
                 <!-- ================= LAYOUT SPLIT: SIDEBAR & KONTEN ================= -->
                 <div class="flex flex-col lg:flex-row gap-8 items-start">
-                    <!-- SIDEBAR KIRI: DAFTAR PUSTAKA TAHUN (DINAMIS DARI DATABASE) -->
                     <div class="w-full lg:w-1/4 sticky top-24 space-y-6">
                         <div
                             class="bg-white rounded-2xl shadow-sm border border-gray-200 p-5"
@@ -482,7 +465,6 @@ const formatDateTime = (dateString) => {
                         </div>
                     </div>
 
-                    <!-- KONTEN KANAN -->
                     <div class="w-full lg:w-3/4 space-y-6">
                         <div
                             class="bg-white shadow-sm border border-gray-200 sm:rounded-2xl p-6"
@@ -552,7 +534,7 @@ const formatDateTime = (dateString) => {
                             </h3>
                         </div>
 
-                        <!-- CARD LIST -->
+                        <!-- CARD LIST ARSIP -->
                         <div class="space-y-5">
                             <div
                                 v-for="surat in surats"
@@ -693,22 +675,6 @@ const formatDateTime = (dateString) => {
                                                 >{{
                                                     formatDateShort(
                                                         surat.tanggal_surat,
-                                                    )
-                                                }}</span
-                                            >
-                                        </div>
-                                        <div
-                                            class="flex items-center bg-white px-3 py-2 rounded-lg border border-gray-200 shadow-sm text-sm"
-                                        >
-                                            <span
-                                                class="text-gray-500 font-medium text-xs uppercase tracking-wide mr-2"
-                                                >Berlaku</span
-                                            >
-                                            <span
-                                                class="font-bold text-indigo-700"
-                                                >{{
-                                                    formatDateShort(
-                                                        surat.tanggal_berlaku,
                                                     )
                                                 }}</span
                                             >
@@ -914,18 +880,6 @@ const formatDateTime = (dateString) => {
                             class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm transition"
                         />
                     </div>
-                    <div>
-                        <label
-                            class="block text-sm font-bold text-gray-700 mb-1"
-                            >Tanggal Berlaku</label
-                        >
-                        <input
-                            v-model="editForm.tanggal_berlaku"
-                            type="date"
-                            required
-                            class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm transition"
-                        />
-                    </div>
 
                     <div
                         class="md:col-span-2 mt-2 bg-blue-50/50 p-4 rounded-xl border border-blue-100"
@@ -1047,19 +1001,9 @@ const formatDateTime = (dateString) => {
                                     {{ log.nama_surat_lama }}
                                 </h4>
                                 <p
-                                    class="text-xs font-semibold text-gray-500 mb-1"
-                                >
-                                    No: {{ log.nomor_surat_lama }}
-                                </p>
-                                <p
                                     class="text-xs font-semibold text-gray-500 mb-3 pb-3 border-b border-gray-100"
                                 >
-                                    Berlaku:
-                                    {{
-                                        formatDateShort(
-                                            log.tanggal_berlaku_lama,
-                                        )
-                                    }}
+                                    No: {{ log.nomor_surat_lama }}
                                 </p>
                                 <p
                                     class="text-xs text-gray-600 mb-4 line-clamp-2 italic"
