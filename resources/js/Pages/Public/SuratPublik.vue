@@ -201,7 +201,7 @@ const formatDateShort = (dateString) => {
                                 <div>
                                     <label
                                         class="block text-xs font-bold text-gray-600 mb-1.5"
-                                        >Tanggal Ditetapkan</label
+                                        >Tanggal Penetapan</label
                                     >
                                     <input
                                         v-model="filterParams.tanggal"

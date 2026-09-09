@@ -281,7 +281,7 @@ const formatDateTime = (dateString) => {
                                 <div>
                                     <label
                                         class="block text-sm font-bold text-gray-700 mb-1"
-                                        >Tanggal Ditetapkan</label
+                                        >Tanggal Penetapan</label
                                     >
                                     <input
                                         v-model="form.tanggal_surat"
@@ -494,7 +494,7 @@ const formatDateTime = (dateString) => {
                                 <div>
                                     <label
                                         class="block text-xs font-bold text-gray-700 mb-1.5"
-                                        >Tanggal Ditetapkan</label
+                                        >Tanggal Penetapan</label
                                     >
                                     <input
                                         v-model="filterParams.tanggal"
@@ -871,7 +871,7 @@ const formatDateTime = (dateString) => {
                     <div>
                         <label
                             class="block text-sm font-bold text-gray-700 mb-1"
-                            >Tanggal Ditetapkan</label
+                            >Tanggal Penetapan</label
                         >
                         <input
                             v-model="editForm.tanggal_surat"

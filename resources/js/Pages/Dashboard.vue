@@ -94,7 +94,7 @@ const formatDateShort = (dateString) => {
                             </div>
                         </div>
 
-                        <div
+                        <!-- <div
                             class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200"
                         >
                             <h3
@@ -154,7 +154,7 @@ const formatDateShort = (dateString) => {
                                     </button>
                                 </div>
                             </div>
-                        </div>
+                        </div> -->
 
                         <div class="space-y-4">
                             <h3 class="text-lg font-bold text-gray-900 px-1">
