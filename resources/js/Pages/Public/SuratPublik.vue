@@ -201,7 +201,7 @@ const formatDateShort = (dateString) => {
                                 <div>
                                     <label
                                         class="block text-xs font-bold text-gray-600 mb-1.5"
-                                        >Tanggal Penetapan</label
+                                        >Tanggal Ditetapkan</label
                                     >
                                     <input
                                         v-model="filterParams.tanggal"
@@ -280,7 +280,9 @@ const formatDateShort = (dateString) => {
                                     class="flex-grow flex flex-col justify-between"
                                 >
                                     <div>
-                                        <div class="mb-3">
+                                        <div
+                                            class="flex justify-between items-start mb-3"
+                                        >
                                             <span
                                                 class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 uppercase tracking-wider"
                                             >
@@ -290,6 +292,19 @@ const formatDateShort = (dateString) => {
                                                               .nama_jenis
                                                         : "TIDAK ADA KATEGORI"
                                                 }}
+                                            </span>
+
+                                            <!-- BADGE KETERANGAN KANAN ATAS -->
+                                            <span
+                                                :class="
+                                                    surat.keterangan ===
+                                                    'berlaku'
+                                                        ? 'bg-emerald-100 text-emerald-700 border-emerald-200'
+                                                        : 'bg-red-100 text-red-700 border-red-200'
+                                                "
+                                                class="inline-flex items-center px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider border shadow-sm"
+                                            >
+                                                {{ surat.keterangan }}
                                             </span>
                                         </div>
                                         <h3
@@ -328,6 +343,7 @@ const formatDateShort = (dateString) => {
                                                 }}</span
                                             >
                                         </div>
+
                                         <div
                                             class="flex items-center bg-white px-3 py-1.5 rounded-lg border border-gray-200 shadow-sm text-sm font-bold"
                                         >
@@ -448,7 +464,7 @@ const formatDateShort = (dateString) => {
         <footer
             class="bg-[#0f172a] text-gray-300 relative z-10 pt-12 pb-6 border-t-[6px] border-indigo-600"
         >
-            <!-- Isi footer tetap seperti sebelumnya -->
+            <!-- Isi footer tetap -->
         </footer>
     </div>
 </template>

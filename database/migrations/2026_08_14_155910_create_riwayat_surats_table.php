@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('nomor_surat_lama');
             $table->foreignId('jenis_surat_id_lama')->constrained('jenis_surats')->onDelete('cascade');
             $table->enum('sifat_surat_lama', ['umum', 'rahasia']);
+            $table->enum('keterangan_lama', ['berlaku', 'dicabut']);
             $table->string('file_pdf_lama'); // Menyimpan path file PDF versi lama
 
             // Pencatat siapa yang melakukan perubahan (mengubah versi)

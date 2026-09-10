@@ -80,6 +80,7 @@ class SuratController extends Controller
             'nomor_surat'     => 'required|string|max:100',
             'jenis_surat_id'  => 'required|exists:jenis_surats,id',
             'sifat_surat'     => 'required|in:umum,rahasia',
+            'keterangan'      => 'required|in:berlaku,dicabut',
             'file_pdf'        => 'required|file|mimes:pdf|max:10240',
         ]);
 
@@ -107,6 +108,7 @@ class SuratController extends Controller
             'nomor_surat'     => 'required|string|max:100',
             'jenis_surat_id'  => 'required|exists:jenis_surats,id',
             'sifat_surat'     => 'required|in:umum,rahasia',
+            'keterangan'      => 'required|in:berlaku,dicabut',
             'file_pdf'        => 'nullable|file|mimes:pdf|max:10240',
         ]);
 
@@ -119,6 +121,7 @@ class SuratController extends Controller
             'nomor_surat_lama'     => $surat->nomor_surat,
             'jenis_surat_id_lama'  => $surat->jenis_surat_id,
             'sifat_surat_lama'     => $surat->sifat_surat,
+            'keterangan_lama'      => $surat->keterangan,
             'file_pdf_lama'        => $surat->file_pdf,
             'diubah_oleh'          => Auth::id(),
         ]);

@@ -26,6 +26,7 @@ return new class extends Migration
 
             // Klasifikasi Kerahasiaan Surat
             $table->enum('sifat_surat', ['umum', 'rahasia'])->default('umum');
+            $table->enum('keterangan', ['berlaku', 'dicabut'])->default('berlaku');
 
             // Jumlah melihat dan mengunduh
             $table->integer('jumlah_dilihat')->default(0);

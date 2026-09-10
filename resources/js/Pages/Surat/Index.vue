@@ -46,6 +46,7 @@ const form = useForm({
     nomor_surat: "",
     jenis_surat_id: "",
     sifat_surat: "umum",
+    keterangan: "berlaku",
     file_pdf: null,
 });
 
@@ -58,6 +59,7 @@ const editForm = useForm({
     nomor_surat: "",
     jenis_surat_id: "",
     sifat_surat: "umum",
+    keterangan: "berlaku",
     file_pdf: null,
     _method: "PUT",
 });
@@ -72,6 +74,7 @@ const openEditModal = (surat) => {
     editForm.nomor_surat = surat.nomor_surat;
     editForm.jenis_surat_id = surat.jenis_surat_id;
     editForm.sifat_surat = surat.sifat_surat;
+    editForm.keterangan = surat.keterangan;
     editForm.file_pdf = null;
     isEditModalOpen.value = true;
 };
@@ -290,7 +293,30 @@ const formatDateTime = (dateString) => {
                                         class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm transition"
                                     />
                                 </div>
-                                <div class="sm:col-span-2">
+
+                                <div>
+                                    <label
+                                        class="block text-sm font-bold text-gray-700 mb-1"
+                                        >Keterangan Dokumen</label
+                                    >
+                                    <select
+                                        v-model="form.keterangan"
+                                        required
+                                        class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm transition font-bold"
+                                        :class="
+                                            form.keterangan === 'berlaku'
+                                                ? 'text-emerald-700 bg-emerald-50'
+                                                : 'text-red-700 bg-red-50'
+                                        "
+                                    >
+                                        <option value="berlaku">Berlaku</option>
+                                        <option value="dicabut">
+                                            Dicabut (Tidak Berlaku)
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <div>
                                     <label
                                         class="block text-sm font-bold text-gray-700 mb-1"
                                         >Sifat & Keamanan</label
@@ -494,7 +520,7 @@ const formatDateTime = (dateString) => {
                                 <div>
                                     <label
                                         class="block text-xs font-bold text-gray-700 mb-1.5"
-                                        >Tanggal Penetapan</label
+                                        >Tanggal Ditetapkan</label
                                     >
                                     <input
                                         v-model="filterParams.tanggal"
@@ -534,7 +560,6 @@ const formatDateTime = (dateString) => {
                             </h3>
                         </div>
 
-                        <!-- CARD LIST ARSIP -->
                         <div class="space-y-5">
                             <div
                                 v-for="surat in surats"
@@ -585,34 +610,56 @@ const formatDateTime = (dateString) => {
                                                         : "TIDAK ADA KATEGORI"
                                                 }}
                                             </span>
+
                                             <div
-                                                v-if="userRole === 'admin'"
-                                                class="flex space-x-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                                                class="flex items-center gap-3"
                                             >
-                                                <button
-                                                    @click="
-                                                        openHistoryModal(surat)
-                                                    "
-                                                    class="px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white border border-transparent hover:border-blue-700 transition"
+                                                <div
+                                                    v-if="userRole === 'admin'"
+                                                    class="flex space-x-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                                                 >
-                                                    Riwayat
-                                                </button>
-                                                <button
-                                                    @click="
-                                                        openEditModal(surat)
+                                                    <button
+                                                        @click="
+                                                            openHistoryModal(
+                                                                surat,
+                                                            )
+                                                        "
+                                                        class="px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white border border-transparent hover:border-blue-700 transition"
+                                                    >
+                                                        Riwayat
+                                                    </button>
+                                                    <button
+                                                        @click="
+                                                            openEditModal(surat)
+                                                        "
+                                                        class="px-3 py-1.5 text-xs font-bold rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white border border-transparent hover:border-amber-600 transition"
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                    <button
+                                                        @click="
+                                                            deleteSurat(
+                                                                surat.id,
+                                                            )
+                                                        "
+                                                        class="px-3 py-1.5 text-xs font-bold rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border border-transparent hover:border-red-700 transition"
+                                                    >
+                                                        Hapus
+                                                    </button>
+                                                </div>
+
+                                                <!-- BADGE KETERANGAN KANAN ATAS -->
+                                                <span
+                                                    :class="
+                                                        surat.keterangan ===
+                                                        'berlaku'
+                                                            ? 'bg-emerald-100 text-emerald-700 border-emerald-200'
+                                                            : 'bg-red-100 text-red-700 border-red-200'
                                                     "
-                                                    class="px-3 py-1.5 text-xs font-bold rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white border border-transparent hover:border-amber-600 transition"
+                                                    class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-wider border shadow-sm"
                                                 >
-                                                    Edit
-                                                </button>
-                                                <button
-                                                    @click="
-                                                        deleteSurat(surat.id)
-                                                    "
-                                                    class="px-3 py-1.5 text-xs font-bold rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border border-transparent hover:border-red-700 transition"
-                                                >
-                                                    Hapus
-                                                </button>
+                                                    {{ surat.keterangan }}
+                                                </span>
                                             </div>
                                         </div>
                                         <h3
@@ -871,7 +918,7 @@ const formatDateTime = (dateString) => {
                     <div>
                         <label
                             class="block text-sm font-bold text-gray-700 mb-1"
-                            >Tanggal Penetapan</label
+                            >Tanggal Ditetapkan</label
                         >
                         <input
                             v-model="editForm.tanggal_surat"
@@ -879,6 +926,28 @@ const formatDateTime = (dateString) => {
                             required
                             class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm transition"
                         />
+                    </div>
+
+                    <div>
+                        <label
+                            class="block text-sm font-bold text-gray-700 mb-1"
+                            >Keterangan Dokumen</label
+                        >
+                        <select
+                            v-model="editForm.keterangan"
+                            required
+                            class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm transition font-bold"
+                            :class="
+                                editForm.keterangan === 'berlaku'
+                                    ? 'text-emerald-700 bg-emerald-50'
+                                    : 'text-red-700 bg-red-50'
+                            "
+                        >
+                            <option value="berlaku">Berlaku</option>
+                            <option value="dicabut">
+                                Dicabut (Tidak Berlaku)
+                            </option>
+                        </select>
                     </div>
 
                     <div
@@ -978,15 +1047,28 @@ const formatDateTime = (dateString) => {
                                 <div
                                     class="flex justify-between items-start mb-3"
                                 >
-                                    <span
-                                        :class="
-                                            log.sifat_surat_lama === 'rahasia'
-                                                ? 'bg-red-50 text-red-700 border-red-100'
-                                                : 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                                        "
-                                        class="px-2.5 py-1 border font-bold text-xs rounded-md uppercase"
-                                        >{{ log.sifat_surat_lama }}</span
-                                    >
+                                    <div>
+                                        <span
+                                            :class="
+                                                log.sifat_surat_lama ===
+                                                'rahasia'
+                                                    ? 'bg-red-50 text-red-700 border-red-100'
+                                                    : 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                                            "
+                                            class="px-2.5 py-1 border font-bold text-xs rounded-md uppercase"
+                                            >{{ log.sifat_surat_lama }}</span
+                                        >
+                                        <span
+                                            :class="
+                                                log.keterangan_lama ===
+                                                'berlaku'
+                                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                                                    : 'bg-red-50 text-red-700 border-red-100'
+                                            "
+                                            class="px-2.5 py-1 border font-bold text-xs rounded-md uppercase ml-2"
+                                            >{{ log.keterangan_lama }}</span
+                                        >
+                                    </div>
                                     <span
                                         class="text-xs font-bold text-gray-500 bg-gray-50 px-2 py-1 rounded"
                                         >{{
