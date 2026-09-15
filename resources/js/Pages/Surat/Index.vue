@@ -18,8 +18,9 @@ const filterParams = ref({
 });
 
 const currentYear = new Date().getFullYear();
-const dynamicYears = Array.from({ length: 11 }, (_, i) =>
-    (currentYear - i).toString(),
+// PERUBAHAN: Rentang 30 tahun (3 tahun ke depan, tahun ini, dan 26 tahun ke belakang)
+const dynamicYears = Array.from({ length: 30 }, (_, i) =>
+    (currentYear + 3 - i).toString(),
 );
 
 const applyFilter = () => {
@@ -566,11 +567,23 @@ const formatDateTime = (dateString) => {
                                 :key="surat.id"
                                 class="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 sm:p-6 flex flex-col sm:flex-row gap-5 sm:gap-6 hover:shadow-md hover:border-indigo-200 transition-all relative group"
                             >
+                                <!-- BADGE KETERANGAN KANAN ATAS -->
+                                <div
+                                    class="absolute top-0 right-0 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-bl-xl rounded-tr-2xl shadow-sm"
+                                    :class="
+                                        surat.keterangan === 'berlaku'
+                                            ? 'bg-emerald-500 text-white'
+                                            : 'bg-red-500 text-white'
+                                    "
+                                >
+                                    {{ surat.keterangan }}
+                                </div>
+
                                 <div
                                     class="flex-shrink-0 flex justify-center sm:justify-start"
                                 >
                                     <div
-                                        class="w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-2xl flex items-center justify-center shadow-inner border border-indigo-100/60 group-hover:scale-105 transition-transform relative"
+                                        class="w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-2xl flex items-center justify-center shadow-inner border border-indigo-100/60 group-hover:scale-105 transition-transform relative mt-2 sm:mt-0"
                                     >
                                         <div
                                             class="absolute -top-3 -right-3 bg-indigo-600 text-white text-xs font-black px-2 py-1 rounded-lg shadow-sm border-2 border-white"
@@ -594,7 +607,7 @@ const formatDateTime = (dateString) => {
                                 </div>
 
                                 <div
-                                    class="flex-grow flex flex-col justify-between"
+                                    class="flex-grow flex flex-col justify-between mt-2 sm:mt-0"
                                 >
                                     <div>
                                         <div
@@ -612,54 +625,33 @@ const formatDateTime = (dateString) => {
                                             </span>
 
                                             <div
-                                                class="flex items-center gap-3"
+                                                v-if="userRole === 'admin'"
+                                                class="flex space-x-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                                             >
-                                                <div
-                                                    v-if="userRole === 'admin'"
-                                                    class="flex space-x-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
-                                                >
-                                                    <button
-                                                        @click="
-                                                            openHistoryModal(
-                                                                surat,
-                                                            )
-                                                        "
-                                                        class="px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white border border-transparent hover:border-blue-700 transition"
-                                                    >
-                                                        Riwayat
-                                                    </button>
-                                                    <button
-                                                        @click="
-                                                            openEditModal(surat)
-                                                        "
-                                                        class="px-3 py-1.5 text-xs font-bold rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white border border-transparent hover:border-amber-600 transition"
-                                                    >
-                                                        Edit
-                                                    </button>
-                                                    <button
-                                                        @click="
-                                                            deleteSurat(
-                                                                surat.id,
-                                                            )
-                                                        "
-                                                        class="px-3 py-1.5 text-xs font-bold rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border border-transparent hover:border-red-700 transition"
-                                                    >
-                                                        Hapus
-                                                    </button>
-                                                </div>
-
-                                                <!-- BADGE KETERANGAN KANAN ATAS -->
-                                                <span
-                                                    :class="
-                                                        surat.keterangan ===
-                                                        'berlaku'
-                                                            ? 'bg-emerald-100 text-emerald-700 border-emerald-200'
-                                                            : 'bg-red-100 text-red-700 border-red-200'
+                                                <button
+                                                    @click="
+                                                        openHistoryModal(surat)
                                                     "
-                                                    class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-wider border shadow-sm"
+                                                    class="px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white border border-transparent hover:border-blue-700 transition"
                                                 >
-                                                    {{ surat.keterangan }}
-                                                </span>
+                                                    Riwayat
+                                                </button>
+                                                <button
+                                                    @click="
+                                                        openEditModal(surat)
+                                                    "
+                                                    class="px-3 py-1.5 text-xs font-bold rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white border border-transparent hover:border-amber-600 transition"
+                                                >
+                                                    Edit
+                                                </button>
+                                                <button
+                                                    @click="
+                                                        deleteSurat(surat.id)
+                                                    "
+                                                    class="px-3 py-1.5 text-xs font-bold rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border border-transparent hover:border-red-700 transition"
+                                                >
+                                                    Hapus
+                                                </button>
                                             </div>
                                         </div>
                                         <h3
@@ -741,7 +733,7 @@ const formatDateTime = (dateString) => {
                                                     )
                                                 "
                                                 target="_blank"
-                                                class="flex-1 sm:flex-none text-center px-6 py-2 bg-white border border-indigo-600 text-indigo-700 hover:bg-indigo-50 font-bold text-sm rounded-lg transition-colors"
+                                                class="flex-1 sm:flex-none text-center px-6 py-2 bg-white border border-indigo-600 text-indigo-600 hover:bg-indigo-50 font-bold text-sm rounded-lg transition-colors"
                                                 >Lihat</a
                                             >
                                             <a
@@ -1058,6 +1050,8 @@ const formatDateTime = (dateString) => {
                                             class="px-2.5 py-1 border font-bold text-xs rounded-md uppercase"
                                             >{{ log.sifat_surat_lama }}</span
                                         >
+
+                                        <!-- BADGE KETERANGAN RIWAYAT (Tanpa Coretan) -->
                                         <span
                                             :class="
                                                 log.keterangan_lama ===

@@ -6,6 +6,7 @@ import { ref } from "vue";
 const props = defineProps({
     stats: Object,
     recent_documents: Array,
+    recent_activities: Array, // PROPS BARU UNTUK LOG AKTIVITAS
     userRole: String,
     filters: Object,
 });
@@ -18,8 +19,8 @@ const filterParams = ref({
 });
 
 const currentYear = new Date().getFullYear();
-const years = Array.from({ length: 11 }, (_, i) =>
-    (currentYear - i).toString(),
+const years = Array.from({ length: 30 }, (_, i) =>
+    (currentYear + 3 - i).toString(),
 );
 
 const applyFilter = () => {
@@ -94,6 +95,68 @@ const formatDateShort = (dateString) => {
                             </div>
                         </div>
 
+                        <div
+                            class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200"
+                        >
+                            <h3
+                                class="text-xs font-bold text-gray-500 mb-4 uppercase tracking-wider"
+                            >
+                                Pencarian Arsip Dokumen
+                            </h3>
+                            <div
+                                class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end"
+                            >
+                                <div>
+                                    <label
+                                        class="block text-xs font-bold text-gray-700 mb-1.5"
+                                        >Nama / Nomor Dokumen</label
+                                    >
+                                    <input
+                                        v-model="filterParams.search"
+                                        type="text"
+                                        placeholder="Cari nama atau nomor..."
+                                        class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition"
+                                        @keyup.enter="applyFilter"
+                                    />
+                                </div>
+                                <div>
+                                    <label
+                                        class="block text-xs font-bold text-gray-700 mb-1.5"
+                                        >Tahun Dokumen</label
+                                    >
+                                    <select
+                                        v-model="filterParams.tahun"
+                                        class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition"
+                                    >
+                                        <option value="">Semua Tahun</option>
+                                        <option
+                                            v-for="y in years"
+                                            :key="y"
+                                            :value="y"
+                                        >
+                                            {{ y }}
+                                        </option>
+                                    </select>
+                                </div>
+                                <div
+                                    class="md:col-span-2 flex justify-end space-x-3 mt-2"
+                                >
+                                    <button
+                                        @click="resetFilter"
+                                        class="px-5 py-2 bg-gray-100 text-gray-700 text-sm font-bold rounded-lg hover:bg-gray-200 transition"
+                                    >
+                                        Reset
+                                    </button>
+                                    <button
+                                        @click="applyFilter"
+                                        class="px-6 py-2 bg-indigo-600 text-white text-sm font-bold rounded-lg hover:bg-indigo-700 transition shadow-sm"
+                                    >
+                                        Cari
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="space-y-4">
                             <h3 class="text-lg font-bold text-gray-900 px-1">
                                 Dokumen Terbaru
@@ -104,7 +167,6 @@ const formatDateShort = (dateString) => {
                                 :key="surat.id"
                                 class="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 sm:p-5 flex flex-col sm:flex-row gap-4 items-center justify-between hover:shadow-md transition-all group relative"
                             >
-                                <!-- BADGE KETERANGAN KANAN ATAS -->
                                 <div
                                     class="absolute top-0 right-0 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-bl-xl rounded-tr-2xl shadow-sm"
                                     :class="
@@ -386,10 +448,9 @@ const formatDateShort = (dateString) => {
                                 Log Aktivitas Terakhir
                             </h3>
                             <div class="relative z-10 space-y-4">
+                                <!-- PERUBAHAN DI SINI: MENGGUNAKAN VARIABEL recent_activities -->
                                 <div
-                                    v-for="(
-                                        log, index
-                                    ) in recent_documents.slice(0, 3)"
+                                    v-for="(log, index) in recent_activities"
                                     :key="'log-' + index"
                                     class="border-b border-indigo-700/50 pb-3 last:border-0 last:pb-0"
                                 >
@@ -419,7 +480,7 @@ const formatDateShort = (dateString) => {
                                     </div>
                                 </div>
                                 <div
-                                    v-if="recent_documents.length === 0"
+                                    v-if="recent_activities.length === 0"
                                     class="text-sm text-indigo-300 italic"
                                 >
                                     Belum ada log aktivitas tercatat di sistem.
