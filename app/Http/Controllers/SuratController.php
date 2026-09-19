@@ -81,7 +81,7 @@ class SuratController extends Controller
             'jenis_surat_id'  => 'required|exists:jenis_surats,id',
             'sifat_surat'     => 'required|in:umum,rahasia',
             'keterangan'      => 'required|in:berlaku,dicabut',
-            'file_pdf'        => 'required|file|mimes:pdf|max:10240',
+            'file_pdf'        => 'required|file|mimes:pdf|max:256000',
         ]);
 
         if ($request->hasFile('file_pdf')) {
@@ -109,7 +109,7 @@ class SuratController extends Controller
             'jenis_surat_id'  => 'required|exists:jenis_surats,id',
             'sifat_surat'     => 'required|in:umum,rahasia',
             'keterangan'      => 'required|in:berlaku,dicabut',
-            'file_pdf'        => 'nullable|file|mimes:pdf|max:10240',
+            'file_pdf'        => 'nullable|file|mimes:pdf|max:256000',
         ]);
 
         RiwayatSurat::create([

@@ -390,7 +390,7 @@ const formatDateTime = (dateString) => {
                                                 {{
                                                     form.file_pdf
                                                         ? form.file_pdf.name
-                                                        : "Maksimal 10MB"
+                                                        : "Maksimal 500MB, format PDF"
                                                 }}
                                             </p>
                                         </div>
@@ -999,7 +999,8 @@ const formatDateTime = (dateString) => {
                     >
                         <label
                             class="block text-sm font-bold text-blue-900 mb-1"
-                            >Unggah PDF Baru (Opsional)</label
+                            >Unggah PDF Baru (Opsional), Maksimal 500MB, format
+                            PDF</label
                         >
                         <p class="text-xs font-medium text-blue-600 mb-3">
                             Kosongkan jika hanya merevisi teks.
