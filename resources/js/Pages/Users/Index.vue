@@ -7,7 +7,6 @@ const props = defineProps({
     users: Array,
 });
 
-// State Form
 const form = useForm({
     id: null,
     name: "",
@@ -32,9 +31,10 @@ const openModal = (user = null) => {
         form.pangkat = user.pangkat;
         form.email = user.email || "";
         form.role = user.role;
-        form.password = ""; // Dikosongkan saat edit
+        form.password = ""; // Kosongkan agar opsional saat diedit
     } else {
         form.reset();
+        form.password = "";
     }
     isModalOpen.value = true;
 };
@@ -57,15 +57,23 @@ const submitForm = () => {
     }
 };
 
-const toggleStatus = (id) => {
-    if (confirm("Ubah status akses pengguna ini?")) {
-        router.put(route("users.toggle", id));
+const toggleStatus = (user) => {
+    let confirmMessage = user.is_active
+        ? "Apakah Anda yakin ingin menonaktifkan akun ini? Pengguna tidak akan bisa login."
+        : "Aktifkan akun ini? Password akan otomatis di-reset menjadi NRP/NIP.";
+
+    if (confirm(confirmMessage)) {
+        router.put(route("users.toggle", user.id));
     }
 };
 
-const resetPassword = (id) => {
-    if (confirm("Reset password pengguna ini ke default (NRP/NIP)?")) {
-        router.put(route("users.reset-password", id));
+const deleteUser = (id) => {
+    if (
+        confirm(
+            "PERINGATAN: Apakah Anda yakin ingin menghapus akun ini secara permanen? Tindakan ini tidak dapat dibatalkan.",
+        )
+    ) {
+        router.delete(route("users.destroy", id));
     }
 };
 </script>
@@ -125,7 +133,7 @@ const resetPassword = (id) => {
                                     <th
                                         class="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider"
                                     >
-                                        Status Akses
+                                        Status
                                     </th>
                                     <th
                                         class="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider"
@@ -139,10 +147,20 @@ const resetPassword = (id) => {
                                     v-for="user in users"
                                     :key="user.id"
                                     class="hover:bg-gray-50"
+                                    :class="
+                                        !user.is_active
+                                            ? 'opacity-70 bg-gray-50'
+                                            : ''
+                                    "
                                 >
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div
                                             class="text-sm font-bold text-gray-900"
+                                            :class="
+                                                !user.is_active
+                                                    ? 'line-through text-gray-500'
+                                                    : ''
+                                            "
                                         >
                                             {{ user.name }}
                                         </div>
@@ -173,21 +191,20 @@ const resetPassword = (id) => {
                                     <td
                                         class="px-6 py-4 whitespace-nowrap text-center"
                                     >
-                                        <button
-                                            @click="toggleStatus(user.id)"
+                                        <span
                                             :class="
                                                 user.is_active
-                                                    ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
-                                                    : 'bg-red-100 text-red-700 hover:bg-red-200'
+                                                    ? 'bg-emerald-100 text-emerald-700'
+                                                    : 'bg-red-100 text-red-700'
                                             "
-                                            class="px-3 py-1 rounded-full text-xs font-bold transition-colors"
+                                            class="px-3 py-1 rounded-full text-xs font-bold inline-block"
                                         >
                                             {{
                                                 user.is_active
                                                     ? "Aktif"
                                                     : "Nonaktif"
                                             }}
-                                        </button>
+                                        </span>
                                     </td>
                                     <td
                                         class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium"
@@ -195,18 +212,48 @@ const resetPassword = (id) => {
                                         <div
                                             class="flex items-center justify-center space-x-2"
                                         >
+                                            <!-- Tombol Edit (Disabled jika nonaktif) -->
                                             <button
                                                 @click="openModal(user)"
-                                                class="text-amber-600 hover:text-amber-900 bg-amber-50 hover:bg-amber-100 px-3 py-1 rounded transition-colors"
+                                                :disabled="!user.is_active"
+                                                :class="
+                                                    user.is_active
+                                                        ? 'text-amber-600 hover:text-amber-900 bg-amber-50 hover:bg-amber-100'
+                                                        : 'text-gray-400 bg-gray-100 cursor-not-allowed opacity-60'
+                                                "
+                                                class="px-3 py-1 rounded transition-colors"
+                                                :title="
+                                                    !user.is_active
+                                                        ? 'Aktifkan akun terlebih dahulu untuk mengedit'
+                                                        : ''
+                                                "
                                             >
                                                 Edit
                                             </button>
+
+                                            <!-- Tombol Aktifkan / Nonaktifkan -->
                                             <button
-                                                @click="resetPassword(user.id)"
-                                                class="text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded transition-colors"
-                                                title="Reset ke NRP/NIP"
+                                                @click="toggleStatus(user)"
+                                                :class="
+                                                    user.is_active
+                                                        ? 'text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200'
+                                                        : 'text-emerald-600 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100'
+                                                "
+                                                class="px-3 py-1 rounded transition-colors"
                                             >
-                                                Reset Sandi
+                                                {{
+                                                    user.is_active
+                                                        ? "Nonaktifkan Akun"
+                                                        : "Aktifkan Akun"
+                                                }}
+                                            </button>
+
+                                            <!-- Tombol Hapus -->
+                                            <button
+                                                @click="deleteUser(user.id)"
+                                                class="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-3 py-1 rounded transition-colors"
+                                            >
+                                                Hapus
                                             </button>
                                         </div>
                                     </td>
@@ -370,14 +417,24 @@ const resetPassword = (id) => {
                         </div>
                     </div>
 
-                    <div v-if="!isEditing">
-                        <label class="block text-sm font-bold text-gray-700"
-                            >Password Awal</label
-                        >
+                    <!-- Input Password (Menyesuaikan konteks Tambah atau Edit) -->
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700">
+                            {{
+                                isEditing
+                                    ? "Password Baru (Opsional)"
+                                    : "Password Awal"
+                            }}
+                        </label>
                         <input
                             v-model="form.password"
                             type="password"
-                            required
+                            :required="!isEditing"
+                            :placeholder="
+                                isEditing
+                                    ? 'Kosongkan jika tidak ubah password'
+                                    : ''
+                            "
                             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
                         />
                         <div

@@ -24,7 +24,7 @@ const showingNavigationDropdown = ref(false);
         </div>
 
         <!-- PERBAIKAN DI SINI: z-10 diubah menjadi z-50 agar dropdown tidak tertutup konten main -->
-        <nav class="border-b border-gray-200 bg-white shadow-sm relative z-50">
+        <nav class="border-b border-gray-200 bg-white shadow-sm relative z-999">
             <!-- Primary Navigation Menu -->
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div class="flex h-16 justify-between">
@@ -215,7 +215,7 @@ const showingNavigationDropdown = ref(false);
 
         <!-- Page Heading -->
         <header
-            class="bg-white/80 backdrop-blur-md shadow-sm relative z-10 border-b border-gray-200"
+            class="bg-white/80 backdrop-blur-md shadow-sm relative z-999 border-b border-gray-200"
             v-if="$slots.header"
         >
             <div class="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
@@ -229,7 +229,9 @@ const showingNavigationDropdown = ref(false);
         </main>
 
         <!-- ================= FOOTER GLOBAL ================= -->
-        <footer class="bg-white border-t border-gray-200 mt-auto relative z-10">
+        <footer
+            class="bg-white border-t border-gray-200 mt-auto relative z-999"
+        >
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                 <div class="md:flex md:items-center md:justify-between">
                     <div

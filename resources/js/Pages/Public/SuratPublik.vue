@@ -3,7 +3,7 @@ import { Head, Link, router } from "@inertiajs/vue3";
 import { ref } from "vue";
 
 const props = defineProps({
-    surats: Array,
+    surats: Object, // PERUBAHAN: Kini menjadi Object karena menggunakan Pagination
     years: Array,
     filters: Object,
 });
@@ -106,7 +106,8 @@ const formatDateShort = (dateString) => {
                 </div>
 
                 <div class="flex flex-col lg:flex-row gap-8 items-start">
-                    <div class="w-full lg:w-1/4 sticky top-24 space-y-6">
+                    <!-- PERUBAHAN: lg:sticky agar di mobile diam dan tersusun di atas kotak pencarian -->
+                    <div class="w-full lg:w-1/4 lg:sticky lg:top-24 space-y-6">
                         <div
                             class="bg-white rounded-2xl shadow-sm border border-gray-200 p-5"
                         >
@@ -201,7 +202,7 @@ const formatDateShort = (dateString) => {
                                 <div>
                                     <label
                                         class="block text-xs font-bold text-gray-600 mb-1.5"
-                                        >Tanggal Ditetapkan</label
+                                        >Tanggal Penetapan</label
                                     >
                                     <input
                                         v-model="filterParams.tanggal"
@@ -234,7 +235,7 @@ const formatDateShort = (dateString) => {
                             <h3 class="text-sm font-bold text-gray-600">
                                 Menampilkan
                                 <span class="text-indigo-600">{{
-                                    surats.length
+                                    surats.total
                                 }}</span>
                                 Dokumen
                                 <span v-if="filterParams.tahun"
@@ -244,16 +245,28 @@ const formatDateShort = (dateString) => {
                         </div>
 
                         <div class="space-y-5">
+                            <!-- PERUBAHAN: Looping ke surats.data -->
                             <div
-                                v-for="surat in surats"
+                                v-for="surat in surats.data"
                                 :key="surat.id"
-                                class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6 flex flex-col sm:flex-row gap-5 sm:gap-8 hover:shadow-md hover:border-indigo-200 transition-all group"
+                                class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6 flex flex-col sm:flex-row gap-5 sm:gap-8 hover:shadow-md hover:border-indigo-200 transition-all group relative"
                             >
+                                <div
+                                    class="absolute top-0 right-0 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-bl-xl rounded-tr-xl shadow-sm"
+                                    :class="
+                                        surat.keterangan === 'berlaku'
+                                            ? 'bg-emerald-500 text-white'
+                                            : 'bg-red-500 text-white'
+                                    "
+                                >
+                                    {{ surat.keterangan }}
+                                </div>
+
                                 <div
                                     class="flex-shrink-0 flex justify-center sm:justify-start"
                                 >
                                     <div
-                                        class="w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-indigo-50 to-blue-100 rounded-2xl flex items-center justify-center shadow-inner border border-indigo-100/50 group-hover:scale-105 transition-transform relative"
+                                        class="w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-indigo-50 to-blue-100 rounded-2xl flex items-center justify-center shadow-inner border border-indigo-100/50 group-hover:scale-105 transition-transform relative mt-2 sm:mt-0"
                                     >
                                         <div
                                             class="absolute -top-3 -right-3 bg-indigo-600 text-white text-xs font-black px-2 py-1 rounded-lg shadow-sm border-2 border-white"
@@ -277,12 +290,10 @@ const formatDateShort = (dateString) => {
                                 </div>
 
                                 <div
-                                    class="flex-grow flex flex-col justify-between"
+                                    class="flex-grow flex flex-col justify-between mt-2 sm:mt-0"
                                 >
                                     <div>
-                                        <div
-                                            class="flex justify-between items-start mb-3"
-                                        >
+                                        <div class="mb-3">
                                             <span
                                                 class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 uppercase tracking-wider"
                                             >
@@ -292,19 +303,6 @@ const formatDateShort = (dateString) => {
                                                               .nama_jenis
                                                         : "TIDAK ADA KATEGORI"
                                                 }}
-                                            </span>
-
-                                            <!-- BADGE KETERANGAN KANAN ATAS -->
-                                            <span
-                                                :class="
-                                                    surat.keterangan ===
-                                                    'berlaku'
-                                                        ? 'bg-emerald-100 text-emerald-700 border-emerald-200'
-                                                        : 'bg-red-100 text-red-700 border-red-200'
-                                                "
-                                                class="inline-flex items-center px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider border shadow-sm"
-                                            >
-                                                {{ surat.keterangan }}
                                             </span>
                                         </div>
                                         <h3
@@ -429,7 +427,7 @@ const formatDateShort = (dateString) => {
                             </div>
 
                             <div
-                                v-if="surats.length === 0"
+                                v-if="surats.data.length === 0"
                                 class="bg-white border border-gray-200 rounded-2xl p-16 text-center shadow-sm"
                             >
                                 <svg
@@ -455,6 +453,35 @@ const formatDateShort = (dateString) => {
                                     pencarian Anda.
                                 </p>
                             </div>
+
+                            <!-- PAGINATION COMPONENT -->
+                            <div
+                                v-if="surats.links && surats.links.length > 3"
+                                class="flex flex-wrap justify-center gap-2 mt-8"
+                            >
+                                <template
+                                    v-for="(link, key) in surats.links"
+                                    :key="key"
+                                >
+                                    <div
+                                        v-if="link.url === null"
+                                        class="px-4 py-2.5 text-sm font-medium text-gray-400 bg-gray-50 border border-gray-200 rounded-lg cursor-not-allowed"
+                                        v-html="link.label"
+                                    ></div>
+                                    <Link
+                                        v-else
+                                        :href="link.url"
+                                        preserve-scroll
+                                        class="px-4 py-2.5 text-sm font-bold border rounded-lg transition-all"
+                                        :class="
+                                            link.active
+                                                ? 'bg-indigo-600 text-white border-indigo-600 shadow-md'
+                                                : 'bg-white text-gray-700 border-gray-200 hover:bg-indigo-50 hover:text-indigo-700'
+                                        "
+                                        v-html="link.label"
+                                    ></Link>
+                                </template>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -464,7 +491,80 @@ const formatDateShort = (dateString) => {
         <footer
             class="bg-[#0f172a] text-gray-300 relative z-10 pt-12 pb-6 border-t-[6px] border-indigo-600"
         >
-            <!-- Isi footer tetap -->
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex flex-col lg:flex-row gap-10 mb-10">
+                    <div class="lg:w-3/4">
+                        <div class="mb-8 border-b border-gray-700/60 pb-8">
+                            <h4
+                                class="text-gray-400 font-bold tracking-widest text-xs mb-3 uppercase"
+                            >
+                                Tentang Database Arsip (SIGAP)
+                            </h4>
+                            <p class="text-sm leading-relaxed text-gray-300">
+                                Sistem Informasi Digitalisasi Arsip Perencanaan
+                                (SIGAP) merupakan bagian dari pelaksanaan
+                                e-Government di lingkungan SSDM Polri untuk
+                                menyebarluaskan informasi, dokumen perencanaan,
+                                dan regulasi secara mudah, cepat, dan akurat
+                                kepada para pengguna baik kalangan internal
+                                maupun masyarakat.
+                            </p>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            <div>
+                                <h4
+                                    class="text-gray-400 font-bold tracking-widest text-xs mb-4 uppercase"
+                                >
+                                    Kontak
+                                </h4>
+                                <div class="text-sm space-y-1.5 text-gray-300">
+                                    <p class="font-bold text-white mb-2">
+                                        Subbagren Bagrenmin SSDM Polri
+                                    </p>
+                                    <p>Bagrenmin SSDM Polri</p>
+                                    <p>Gedung TNCC lt. 8, Mabes Polri</p>
+                                    <p>Jalan Trunojoyo No. 3, Kebayoran Baru</p>
+                                    <p>Jakarta Selatan, 12110</p>
+                                </div>
+                            </div>
+                            <div>
+                                <h4
+                                    class="text-gray-400 font-bold tracking-widest text-xs mb-4 uppercase"
+                                >
+                                    Link Terkait
+                                </h4>
+                                <ul class="text-sm space-y-3">
+                                    <li>
+                                        <a
+                                            href="https://polri.go.id"
+                                            target="_blank"
+                                            class="hover:text-indigo-400 transition-colors flex items-center gap-2"
+                                            >www.polri.go.id</a
+                                        >
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="lg:w-1/4 flex items-stretch">
+                        <div
+                            class="bg-white rounded-xl p-8 shadow-sm w-full border border-gray-200 flex items-center justify-center hover:shadow-md transition-shadow"
+                        >
+                            <img
+                                src="/logo.png"
+                                alt="Logo SIGAP Besar"
+                                class="w-full max-w-[200px] h-auto object-contain drop-shadow-sm"
+                            />
+                        </div>
+                    </div>
+                </div>
+                <div class="border-t border-gray-700/60 pt-6 mt-2 text-center">
+                    <p class="text-xs text-gray-400 font-medium">
+                        &copy; 2026 Bagian Perencanaan dan Administrasi
+                        (Bagrenmin) Staf Sumber Daya Manusia Polri
+                    </p>
+                </div>
+            </div>
         </footer>
     </div>
 </template>

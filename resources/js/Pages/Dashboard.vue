@@ -5,8 +5,8 @@ import { ref } from "vue";
 
 const props = defineProps({
     stats: Object,
-    recent_documents: Array,
-    recent_activities: Array, // PROPS BARU UNTUK LOG AKTIVITAS
+    recent_documents: Object,
+    recent_activities: Array, // PROPS UNTUK LOG AKTIVITAS
     userRole: String,
     filters: Object,
 });
@@ -53,6 +53,7 @@ const formatDateShort = (dateString) => {
         <div class="py-8">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- AREA KIRI: DOKUMEN & PENCARIAN -->
                     <div class="lg:col-span-2 space-y-6">
                         <div
                             class="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between shadow-sm border border-indigo-100"
@@ -163,7 +164,7 @@ const formatDateShort = (dateString) => {
                             </h3>
 
                             <div
-                                v-for="surat in recent_documents"
+                                v-for="surat in recent_documents.data"
                                 :key="surat.id"
                                 class="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 sm:p-5 flex flex-col sm:flex-row gap-4 items-center justify-between hover:shadow-md transition-all group relative"
                             >
@@ -284,14 +285,49 @@ const formatDateShort = (dateString) => {
                             </div>
 
                             <div
-                                v-if="recent_documents.length === 0"
+                                v-if="recent_documents.data.length === 0"
                                 class="bg-white rounded-2xl border border-gray-200 p-12 text-center text-gray-500 text-sm"
                             >
                                 Belum ada dokumen yang ditemukan.
                             </div>
+
+                            <!-- PAGINATION COMPONENT DASHBOARD -->
+                            <div
+                                v-if="
+                                    recent_documents.links &&
+                                    recent_documents.links.length > 3
+                                "
+                                class="flex flex-wrap justify-center gap-2 mt-8"
+                            >
+                                <template
+                                    v-for="(
+                                        link, key
+                                    ) in recent_documents.links"
+                                    :key="key"
+                                >
+                                    <div
+                                        v-if="link.url === null"
+                                        class="px-4 py-2.5 text-sm font-medium text-gray-400 bg-gray-50 border border-gray-200 rounded-lg cursor-not-allowed"
+                                        v-html="link.label"
+                                    ></div>
+                                    <Link
+                                        v-else
+                                        :href="link.url"
+                                        preserve-scroll
+                                        class="px-4 py-2.5 text-sm font-bold border rounded-lg transition-all"
+                                        :class="
+                                            link.active
+                                                ? 'bg-indigo-600 text-white border-indigo-600 shadow-md'
+                                                : 'bg-white text-gray-700 border-gray-200 hover:bg-indigo-50 hover:text-indigo-700'
+                                        "
+                                        v-html="link.label"
+                                    ></Link>
+                                </template>
+                            </div>
                         </div>
                     </div>
 
+                    <!-- AREA KANAN: STATISTIK & LOG AKTIVITAS -->
                     <div class="space-y-6">
                         <h3 class="text-lg font-bold text-gray-900 pt-2">
                             Statistik Data
@@ -414,7 +450,9 @@ const formatDateShort = (dateString) => {
                             </div>
                         </div>
 
+                        <!-- LOG AKTIVITAS (DITAMPILKAN JIKA USER = ADMIN) -->
                         <div
+                            v-if="userRole === 'admin'"
                             class="bg-gradient-to-br from-indigo-900 to-blue-800 rounded-2xl p-6 text-white shadow-md relative overflow-hidden"
                         >
                             <div class="absolute -right-10 -top-10 opacity-10">
@@ -448,7 +486,6 @@ const formatDateShort = (dateString) => {
                                 Log Aktivitas Terakhir
                             </h3>
                             <div class="relative z-10 space-y-4">
-                                <!-- PERUBAHAN DI SINI: MENGGUNAKAN VARIABEL recent_activities -->
                                 <div
                                     v-for="(log, index) in recent_activities"
                                     :key="'log-' + index"

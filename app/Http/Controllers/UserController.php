@@ -57,22 +57,30 @@ class UserController extends Controller
         $user = User::findOrFail($id);
 
         $request->validate([
-            'name'    => 'required|string|max:255',
-            'nrp_nip' => 'required|string|max:255|unique:users,nrp_nip,' . $user->id,
-            'jabatan' => 'required|string|max:255',
-            'pangkat' => 'required|string|max:255',
-            'role'    => 'required|in:admin,internal',
-            'email'   => 'nullable|string|email|max:255|unique:users,email,' . $user->id,
+            'name'     => 'required|string|max:255',
+            'nrp_nip'  => 'required|string|max:255|unique:users,nrp_nip,' . $user->id,
+            'jabatan'  => 'required|string|max:255',
+            'pangkat'  => 'required|string|max:255',
+            'role'     => 'required|in:admin,internal',
+            'email'    => 'nullable|string|email|max:255|unique:users,email,' . $user->id,
+            'password' => ['nullable', Rules\Password::defaults()], // Password opsional saat edit
         ]);
 
-        $user->update([
+        $dataToUpdate = [
             'name'    => $request->name,
             'nrp_nip' => $request->nrp_nip,
             'jabatan' => $request->jabatan,
             'pangkat' => $request->pangkat,
             'role'    => $request->role,
             'email'   => $request->email,
-        ]);
+        ];
+
+        // Jika form password diisi, update passwordnya
+        if ($request->filled('password')) {
+            $dataToUpdate['password'] = Hash::make($request->password);
+        }
+
+        $user->update($dataToUpdate);
 
         return redirect()->back()->with('message', 'Data pengguna berhasil diperbarui.');
     }
@@ -83,23 +91,32 @@ class UserController extends Controller
 
         $user = User::findOrFail($id);
         $user->is_active = !$user->is_active;
+
+        if ($user->is_active) {
+            $defaultPassword = $user->nrp_nip;
+            $user->password = Hash::make($defaultPassword);
+            $message = "Akun berhasil diaktifkan kembali. Password di-reset menjadi NRP/NIP pengguna: $defaultPassword";
+        } else {
+            $message = "Akun berhasil dinonaktifkan.";
+        }
+
         $user->save();
 
-        $status = $user->is_active ? 'diaktifkan' : 'dinonaktifkan';
-        return redirect()->back()->with('message', "Akses masuk pengguna berhasil $status.");
+        return redirect()->back()->with('message', $message);
     }
 
-    public function resetPassword($id)
+    public function destroy($id)
     {
         if (Auth::user()->role !== 'admin') abort(403);
 
         $user = User::findOrFail($id);
-        // Menggunakan NRP/NIP sebagai password default sementara agar lebih relevan dengan instansi
-        $defaultPassword = $user->nrp_nip;
 
-        $user->password = Hash::make($defaultPassword);
-        $user->save();
+        if ($user->id === Auth::id()) {
+            return redirect()->back()->withErrors('Anda tidak dapat menghapus akun Anda sendiri.');
+        }
 
-        return redirect()->back()->with('message', "Password berhasil di-reset menjadi NRP/NIP pengguna: $defaultPassword");
+        $user->delete();
+
+        return redirect()->back()->with('message', 'Akun pengguna berhasil dihapus secara permanen.');
     }
 }

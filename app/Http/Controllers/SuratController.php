@@ -32,8 +32,12 @@ class SuratController extends Controller
             ->orderBy('tahun_dokumen', 'desc')
             ->pluck('tahun_dokumen');
 
+        $surats = $query->orderBy('tanggal_surat', 'desc')
+            ->paginate(10)
+            ->withQueryString();
+
         return Inertia::render('Public/SuratPublik', [
-            'surats'  => $query->latest()->get(),
+            'surats'  => $surats,
             'years'   => $years,
             'filters' => $request->only(['search', 'tanggal', 'tahun']),
         ]);
@@ -59,8 +63,12 @@ class SuratController extends Controller
             ->orderBy('tahun_dokumen', 'desc')
             ->pluck('tahun_dokumen');
 
+        $surats = $query->orderBy('tanggal_surat', 'desc')
+            ->paginate(10)
+            ->withQueryString();
+
         return Inertia::render('Surat/Index', [
-            'surats'       => $query->latest()->get(),
+            'surats'       => $surats,
             'jenis_surats' => JenisSurat::all(),
             'years'        => $years,
             'userRole'     => $user->role,
@@ -81,7 +89,7 @@ class SuratController extends Controller
             'jenis_surat_id'  => 'required|exists:jenis_surats,id',
             'sifat_surat'     => 'required|in:umum,rahasia',
             'keterangan'      => 'required|in:berlaku,dicabut',
-            'file_pdf'        => 'required|file|mimes:pdf|max:256000',
+            'file_pdf'        => 'required|file|mimes:pdf|max:512000',
         ]);
 
         if ($request->hasFile('file_pdf')) {
@@ -109,7 +117,7 @@ class SuratController extends Controller
             'jenis_surat_id'  => 'required|exists:jenis_surats,id',
             'sifat_surat'     => 'required|in:umum,rahasia',
             'keterangan'      => 'required|in:berlaku,dicabut',
-            'file_pdf'        => 'nullable|file|mimes:pdf|max:256000',
+            'file_pdf'        => 'nullable|file|mimes:pdf|max:512000',
         ]);
 
         RiwayatSurat::create([

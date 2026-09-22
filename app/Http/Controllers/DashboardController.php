@@ -21,7 +21,7 @@ class DashboardController extends Controller
         // Menghitung total interaksi (jumlah dilihat + jumlah diunduh)
         $totalInteraksi = Surat::sum('jumlah_dilihat') + Surat::sum('jumlah_unduh');
 
-        // 2. MENGAMBIL DATA DOKUMEN UTAMA (BISA DI-FILTER)
+        // 2. MENGAMBIL DATA DOKUMEN UTAMA DENGAN FILTER & PAGINATION (5 PER HALAMAN)
         $query = Surat::with(['jenisSurat', 'pembuat']);
 
         if ($request->filled('search')) {
@@ -36,14 +36,16 @@ class DashboardController extends Controller
             $query->where('tahun_dokumen', $request->tahun);
         }
 
-        if ($request->filled('search') || $request->filled('tahun')) {
-            $recentDocuments = $query->latest()->get();
-        } else {
-            $recentDocuments = $query->latest()->take(5)->get();
-        }
+        // Diurutkan berdasarkan tanggal penetapan terbaru, lalu dipisah 5 per halaman
+        $recentDocuments = $query->orderBy('tanggal_surat', 'desc')
+            ->paginate(5)
+            ->withQueryString();
 
-        // 3. LOG AKTIVITAS TERAKHIR (STATIS: MENGAMBIL 5 TERBARU TANPA FILTER)
-        $recentActivities = Surat::with('pembuat')->latest()->take(5)->get();
+        // 3. LOG AKTIVITAS TERAKHIR (HANYA UNTUK ADMIN)
+        $recentActivities = [];
+        if ($user->role === 'admin') {
+            $recentActivities = Surat::with('pembuat')->latest()->take(5)->get();
+        }
 
         // 4. MENGIRIM DATA KE VUE
         return Inertia::render('Dashboard', [
@@ -54,7 +56,7 @@ class DashboardController extends Controller
                 'interaksi' => $totalInteraksi,
             ],
             'recent_documents' => $recentDocuments,
-            'recent_activities' => $recentActivities, // KITA KIRIM VARIABEL BARU INI
+            'recent_activities' => $recentActivities,
             'userRole' => $user->role,
             'filters' => $request->only(['search', 'tahun']),
         ]);
