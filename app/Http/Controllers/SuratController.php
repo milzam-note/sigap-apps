@@ -176,7 +176,9 @@ class SuratController extends Controller
         $surat = Surat::findOrFail($id);
         if ($surat->sifat_surat === 'rahasia' && !Auth::check()) abort(403);
         $surat->increment('jumlah_unduh');
-        return response()->download(storage_path('app/public/' . $surat->file_pdf), $surat->nama_surat . '.pdf');
+        $safeFileName = str_replace(['/', '\\'], '-', $surat->nama_surat) . '.pdf';
+
+        return response()->download(storage_path('app/public/' . $surat->file_pdf), $safeFileName);
     }
 
     public function lihatRiwayat($id)

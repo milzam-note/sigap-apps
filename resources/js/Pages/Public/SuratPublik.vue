@@ -61,23 +61,29 @@ const formatDateShort = (dateString) => {
         >
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between h-20">
-                    <div class="flex items-center">
+                    <div class="flex items-center space-x-3">
                         <Link
                             :href="route('home')"
-                            class="flex items-center gap-3 hover:opacity-80 transition-opacity"
+                            class="flex items-center gap-3 hover:opacity-90 transition-opacity"
                         >
                             <img
-                                src="/logo_horizontal.png"
-                                alt="Logo Portal"
-                                class="h-12 w-auto drop-shadow-sm"
+                                src="/logo_ssdm.png"
+                                alt="Logo SSDM Polri"
+                                class="h-11 w-auto object-contain drop-shadow-sm"
                             />
-                            <span
-                                class="font-black text-xl text-indigo-900 tracking-tight hidden sm:block"
-                            >
-                                Sistem Informasi Digitalisasi Arsip Perencanaan
-                                dan Regulasi
-                            </span>
+
+                            <img
+                                src="/logo_horizontal.png"
+                                alt="Logo SIGAP"
+                                class="h-10 w-auto object-contain drop-shadow-sm"
+                            />
                         </Link>
+                        <span
+                            class="font-black text-xl text-indigo-900 tracking-tight hidden sm:block"
+                        >
+                            Sistem Informasi Digitalisasi Arsip Perencanaan dan
+                            Regulasi
+                        </span>
                     </div>
                     <div class="flex items-center space-x-4">
                         <Link

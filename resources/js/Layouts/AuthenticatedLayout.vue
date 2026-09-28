@@ -31,7 +31,15 @@ const showingNavigationDropdown = ref(false);
                     <div class="flex">
                         <!-- Logo -->
                         <div class="flex shrink-0 items-center mt-2">
-                            <Link :href="route('dashboard')">
+                            <Link
+                                :href="route('dashboard')"
+                                class="flex items-center space-x-3"
+                            >
+                                <img
+                                    src="/logo_ssdm.png"
+                                    alt="Logo SSDM Polri"
+                                    class="h-10 w-auto object-contain transition-transform hover:scale-105"
+                                />
                                 <ApplicationLogo
                                     class="block h-12 w-auto fill-current text-gray-800 transition-transform hover:scale-105"
                                 />
